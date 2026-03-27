@@ -146,6 +146,81 @@ export const PLAYERS: Player[] = [
   { id: "p8", name: "Erik Shoji", position: "Libero", team: "USA", country: "USA", number: 21, stats: { points: 12, aces: 8, blocks: 0, digs: 198, attacks: 4 } },
 ];
 
+export type OlympicTeam = {
+  id: string;
+  shortName: string;
+  country: string;
+  rankingPoints: number;
+  rank: number;
+  qualificationStatus: "qualified" | "contender" | "at_risk";
+  qualificationPath?: string;
+  isHost?: boolean;
+};
+
+export type OlympicQualPath = {
+  id: string;
+  name: string;
+  spots: number;
+  description: string;
+  deadline: string;
+  teamsQualified: string[];
+  isComplete: boolean;
+};
+
+export const OLYMPIC_TEAMS: OlympicTeam[] = [
+  { id: "o1", shortName: "USA", country: "United States", rankingPoints: 412, rank: 1, qualificationStatus: "qualified", qualificationPath: "Host Nation", isHost: true },
+  { id: "o2", shortName: "POL", country: "Poland", rankingPoints: 389, rank: 2, qualificationStatus: "qualified", qualificationPath: "FIVB Ranking" },
+  { id: "o3", shortName: "BRA", country: "Brazil", rankingPoints: 374, rank: 3, qualificationStatus: "qualified", qualificationPath: "South American Championship" },
+  { id: "o4", shortName: "FRA", country: "France", rankingPoints: 361, rank: 4, qualificationStatus: "qualified", qualificationPath: "FIVB Ranking" },
+  { id: "o5", shortName: "ITA", country: "Italy", rankingPoints: 348, rank: 5, qualificationStatus: "contender", qualificationPath: "OQT Pathway" },
+  { id: "o6", shortName: "SLO", country: "Slovenia", rankingPoints: 320, rank: 6, qualificationStatus: "contender", qualificationPath: "OQT Pathway" },
+  { id: "o7", shortName: "JPN", country: "Japan", rankingPoints: 307, rank: 7, qualificationStatus: "qualified", qualificationPath: "Asian Championship" },
+  { id: "o8", shortName: "CUB", country: "Cuba", rankingPoints: 294, rank: 8, qualificationStatus: "contender", qualificationPath: "OQT Pathway" },
+  { id: "o9", shortName: "ARG", country: "Argentina", rankingPoints: 278, rank: 9, qualificationStatus: "at_risk", qualificationPath: "OQT Pathway" },
+  { id: "o10", shortName: "GER", country: "Germany", rankingPoints: 265, rank: 10, qualificationStatus: "at_risk", qualificationPath: "OQT Pathway" },
+  { id: "o11", shortName: "CAN", country: "Canada", rankingPoints: 251, rank: 11, qualificationStatus: "at_risk", qualificationPath: "OQT Pathway" },
+  { id: "o12", shortName: "TUN", country: "Tunisia", rankingPoints: 198, rank: 12, qualificationStatus: "at_risk", qualificationPath: "African Championship" },
+];
+
+export const OLYMPIC_PATHS: OlympicQualPath[] = [
+  {
+    id: "q1",
+    name: "Host Nation",
+    spots: 1,
+    description: "USA qualifies automatically as the host nation for the 2028 Los Angeles Olympics.",
+    deadline: "Confirmed",
+    teamsQualified: ["USA"],
+    isComplete: true,
+  },
+  {
+    id: "q2",
+    name: "Continental Championships",
+    spots: 5,
+    description: "One team per continent qualifies via their continental championship (CEV, CSV, AVC, NORCECA, CAVB).",
+    deadline: "Jun 2027",
+    teamsQualified: ["BRA", "JPN"],
+    isComplete: false,
+  },
+  {
+    id: "q3",
+    name: "FIVB World Ranking",
+    spots: 3,
+    description: "Top-ranked teams not yet qualified through other pathways receive automatic berths based on FIVB rankings after VNL 2027.",
+    deadline: "Aug 2027",
+    teamsQualified: ["POL", "FRA"],
+    isComplete: false,
+  },
+  {
+    id: "q4",
+    name: "Olympic Qualification Tournaments",
+    spots: 3,
+    description: "Three OQT events held globally, each awarding one Olympic berth to the tournament winner.",
+    deadline: "Sep 2027",
+    teamsQualified: [],
+    isComplete: false,
+  },
+];
+
 export const NEWS: NewsItem[] = [
   { id: "n1", title: "Team USA Leads VNL Pool With Six Straight Wins", summary: "The US Men's National Team is on fire this VNL season, dominating Pool A and setting up a thrilling semifinal run as they chase their first VNL title.", category: "VNL 2026", date: "2 hours ago", readTime: 3 },
   { id: "n2", title: "Matt Anderson Named VNL Week 3 MVP", summary: "USA's powerhouse outside hitter recorded 98 points across three matches, earning his fourth career Player of the Week award and cementing his MVP status.", category: "Awards", date: "5 hours ago", readTime: 2 },

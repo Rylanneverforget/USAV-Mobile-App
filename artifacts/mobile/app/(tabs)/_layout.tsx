@@ -5,7 +5,7 @@ import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import Colors from "@/constants/colors";
 
 const C = Colors.light;
@@ -24,6 +24,10 @@ function NativeTabLayout() {
       <NativeTabs.Trigger name="players">
         <Icon sf={{ default: "person.2", selected: "person.2.fill" }} />
         <Label>Players</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="olympics">
+        <Icon sf={{ default: "medal", selected: "medal.fill" }} />
+        <Label>LA28</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="news">
         <Icon sf={{ default: "newspaper", selected: "newspaper.fill" }} />
@@ -98,6 +102,18 @@ function ClassicTabLayout() {
               <SymbolView name="person.2" tintColor={color} size={24} />
             ) : (
               <Ionicons name="people-outline" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="olympics"
+        options={{
+          title: "LA28",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="medal" tintColor={color} size={24} />
+            ) : (
+              <Ionicons name="medal-outline" size={22} color={color} />
             ),
         }}
       />
