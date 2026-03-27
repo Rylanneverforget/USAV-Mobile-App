@@ -48,6 +48,20 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 - `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
 - `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
 
+## Authentication
+
+Replit Auth (OpenID Connect with PKCE) is integrated for the mobile app.
+
+- **API server**: Session-based auth using PostgreSQL-backed sessions (`sessionsTable`, `usersTable` in `lib/db/src/schema/auth.ts`).
+  - `artifacts/api-server/src/lib/auth.ts` — OIDC config, session CRUD
+  - `artifacts/api-server/src/middlewares/authMiddleware.ts` — loads user from session on every request
+  - `artifacts/api-server/src/routes/auth.ts` — login/callback/logout (web) + mobile token exchange endpoints
+  - `app.ts` uses `cookieParser` and `authMiddleware` before routes
+- **Mobile app**: `expo-auth-session` PKCE flow in `artifacts/mobile/lib/auth.tsx` (`AuthProvider`, `useAuth()`).
+  - Session token stored in `expo-secure-store`, passed as `Authorization: Bearer` header
+  - `_layout.tsx` wraps the app in `AuthProvider` and registers the token getter
+- Protected routes use `req.isAuthenticated()` to guard handlers.
+
 ## Packages
 
 ### `artifacts/api-server` (`@workspace/api-server`)
