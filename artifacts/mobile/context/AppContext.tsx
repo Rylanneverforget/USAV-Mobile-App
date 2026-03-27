@@ -23,7 +23,7 @@ type AppContextType = {
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<string[]>(["1"]);
   const [activeTab, setActiveTab] = useState("home");
 
   useEffect(() => {

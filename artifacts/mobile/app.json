@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "VolleyFan",
+    "name": "USA Volleyball",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,17 +11,17 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0B1D3A"
+      "backgroundColor": "#001F5B"
     },
     "ios": {
       "supportsTablet": false
     },
     "android": {
-      "backgroundColor": "#0B1D3A"
+      "backgroundColor": "#001F5B"
     },
     "web": {
       "favicon": "./assets/images/icon.png",
-      "backgroundColor": "#0B1D3A"
+      "backgroundColor": "#001F5B"
     },
     "plugins": [
       [

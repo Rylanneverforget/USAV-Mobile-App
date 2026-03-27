@@ -39,16 +39,22 @@ export default function HomeScreen() {
       showsVerticalScrollIndicator={false}
     >
       <LinearGradient
-        colors={["#0B3060", C.primary]}
+        colors={["#002080", "#001F5B"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       />
+      <LinearGradient
+        colors={["#BF0D3E", "transparent"]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.headerGradient, { opacity: 0.25 }]}
+      />
 
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.greeting}>Volleyball</Text>
-          <Text style={styles.subtitle}>VNL 2026 Season</Text>
+          <Text style={styles.greeting}>USA Volleyball</Text>
+          <Text style={styles.subtitle}>VNL 2026 · Go USA</Text>
         </View>
         <View style={styles.vnlBadge}>
           <Ionicons name="trophy" size={14} color={C.accent} />
@@ -163,13 +169,13 @@ const styles = StyleSheet.create({
   vnlBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(245,166,35,0.15)",
+    backgroundColor: "rgba(191,13,62,0.15)",
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
     gap: 5,
     borderWidth: 1,
-    borderColor: "rgba(245,166,35,0.3)",
+    borderColor: "rgba(191,13,62,0.35)",
   },
   vnlText: {
     fontSize: 13,

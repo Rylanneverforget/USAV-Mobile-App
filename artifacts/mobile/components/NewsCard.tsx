@@ -8,10 +8,11 @@ const C = Colors.light;
 
 const CATEGORY_COLORS: Record<string, string> = {
   "VNL 2026": "#2DC579",
-  "Awards": "#F5A623",
+  "Awards": "#BF0D3E",
   "Analysis": "#5B8DEF",
   "Injury": "#E84855",
   "Feature": "#9B59B6",
+  "Interview": "#F5A623",
 };
 
 type Props = {

@@ -17,7 +17,7 @@ import { NEWS } from "@/constants/data";
 const C = Colors.light;
 const WEB_TOP_INSET = 67;
 
-const CATEGORIES = ["All", "VNL 2026", "Awards", "Analysis", "Feature", "Injury"];
+const CATEGORIES = ["All", "VNL 2026", "Awards", "Analysis", "Feature", "Interview"];
 
 export default function NewsScreen() {
   const insets = useSafeAreaInsets();
@@ -37,16 +37,22 @@ export default function NewsScreen() {
       showsVerticalScrollIndicator={false}
     >
       <LinearGradient
-        colors={["#0B3060", C.primary]}
+        colors={["#002080", "#001F5B"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
+      />
+      <LinearGradient
+        colors={["#BF0D3E", "transparent"]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.headerGradient, { opacity: 0.2 }]}
       />
 
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.heading}>News</Text>
-          <Text style={styles.subheading}>Latest from the volleyball world</Text>
+          <Text style={styles.subheading}>USA Volleyball Updates</Text>
         </View>
         <View style={styles.badge}>
           <Ionicons name="newspaper" size={14} color={C.accent} />
@@ -130,11 +136,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(245,166,35,0.15)",
+    backgroundColor: "rgba(191,13,62,0.15)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(245,166,35,0.3)",
+    borderColor: "rgba(191,13,62,0.35)",
   },
   filtersScroll: {
     marginBottom: 20,

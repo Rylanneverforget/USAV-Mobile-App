@@ -52,21 +52,21 @@ export type NewsItem = {
 };
 
 export const TEAMS: Team[] = [
-  { id: "1", name: "Brazil National", shortName: "BRA", country: "Brazil", wins: 22, losses: 3, setsWon: 68, setsLost: 18, points: 66, form: ["W","W","W","L","W"] },
-  { id: "2", name: "Poland National", shortName: "POL", country: "Poland", wins: 20, losses: 5, setsWon: 64, setsLost: 22, points: 61, form: ["W","W","L","W","W"] },
-  { id: "3", name: "France National", shortName: "FRA", country: "France", wins: 19, losses: 6, setsWon: 60, setsLost: 25, points: 58, form: ["L","W","W","W","W"] },
-  { id: "4", name: "Italy National", shortName: "ITA", country: "Italy", wins: 18, losses: 7, setsWon: 58, setsLost: 28, points: 55, form: ["W","L","W","W","L"] },
-  { id: "5", name: "USA National", shortName: "USA", country: "USA", wins: 17, losses: 8, setsWon: 55, setsLost: 30, points: 52, form: ["W","W","W","L","W"] },
-  { id: "6", name: "Russia National", shortName: "RUS", country: "Russia", wins: 16, losses: 9, setsWon: 52, setsLost: 33, points: 49, form: ["L","L","W","W","W"] },
-  { id: "7", name: "Japan National", shortName: "JPN", country: "Japan", wins: 15, losses: 10, setsWon: 49, setsLost: 36, points: 46, form: ["W","L","W","L","W"] },
-  { id: "8", name: "Argentina National", shortName: "ARG", country: "Argentina", wins: 14, losses: 11, setsWon: 46, setsLost: 38, points: 43, form: ["L","W","L","W","W"] },
+  { id: "1", name: "USA", shortName: "USA", country: "United States", wins: 22, losses: 3, setsWon: 68, setsLost: 18, points: 66, form: ["W","W","W","L","W"], isFavorite: true },
+  { id: "2", name: "Brazil", shortName: "BRA", country: "Brazil", wins: 20, losses: 5, setsWon: 64, setsLost: 22, points: 61, form: ["W","W","L","W","W"] },
+  { id: "3", name: "Poland", shortName: "POL", country: "Poland", wins: 19, losses: 6, setsWon: 60, setsLost: 25, points: 58, form: ["L","W","W","W","W"] },
+  { id: "4", name: "France", shortName: "FRA", country: "France", wins: 18, losses: 7, setsWon: 58, setsLost: 28, points: 55, form: ["W","L","W","W","L"] },
+  { id: "5", name: "Italy", shortName: "ITA", country: "Italy", wins: 17, losses: 8, setsWon: 55, setsLost: 30, points: 52, form: ["W","W","W","L","W"] },
+  { id: "6", name: "Japan", shortName: "JPN", country: "Japan", wins: 16, losses: 9, setsWon: 52, setsLost: 33, points: 49, form: ["L","L","W","W","W"] },
+  { id: "7", name: "Argentina", shortName: "ARG", country: "Argentina", wins: 15, losses: 10, setsWon: 49, setsLost: 36, points: 46, form: ["W","L","W","L","W"] },
+  { id: "8", name: "Canada", shortName: "CAN", country: "Canada", wins: 14, losses: 11, setsWon: 46, setsLost: 38, points: 43, form: ["L","W","L","W","W"] },
 ];
 
 export const MATCHES: Match[] = [
   {
     id: "m1",
-    homeTeam: "BRA",
-    awayTeam: "POL",
+    homeTeam: "USA",
+    awayTeam: "BRA",
     homeScore: 2,
     awayScore: 1,
     status: "live",
@@ -78,8 +78,8 @@ export const MATCHES: Match[] = [
   },
   {
     id: "m2",
-    homeTeam: "FRA",
-    awayTeam: "ITA",
+    homeTeam: "USA",
+    awayTeam: "FRA",
     homeScore: 0,
     awayScore: 0,
     status: "upcoming",
@@ -101,8 +101,8 @@ export const MATCHES: Match[] = [
   },
   {
     id: "m4",
-    homeTeam: "ARG",
-    awayTeam: "RUS",
+    homeTeam: "POL",
+    awayTeam: "ITA",
     homeScore: 1,
     awayScore: 3,
     status: "finished",
@@ -113,8 +113,8 @@ export const MATCHES: Match[] = [
   },
   {
     id: "m5",
-    homeTeam: "BRA",
-    awayTeam: "FRA",
+    homeTeam: "USA",
+    awayTeam: "POL",
     homeScore: 0,
     awayScore: 0,
     status: "upcoming",
@@ -124,8 +124,8 @@ export const MATCHES: Match[] = [
   },
   {
     id: "m6",
-    homeTeam: "POL",
-    awayTeam: "USA",
+    homeTeam: "BRA",
+    awayTeam: "CAN",
     homeScore: 0,
     awayScore: 0,
     status: "upcoming",
@@ -136,21 +136,21 @@ export const MATCHES: Match[] = [
 ];
 
 export const PLAYERS: Player[] = [
-  { id: "p1", name: "Lucão", position: "Middle Blocker", team: "BRA", country: "Brazil", number: 9, stats: { points: 198, aces: 22, blocks: 48, digs: 31, attacks: 128 } },
-  { id: "p2", name: "Wilfredo Leon", position: "Outside Hitter", team: "POL", country: "Cuba/Poland", number: 9, stats: { points: 312, aces: 35, blocks: 28, digs: 87, attacks: 249 } },
-  { id: "p3", name: "Earvin N'Gapeth", position: "Outside Hitter", team: "FRA", country: "France", number: 9, stats: { points: 287, aces: 31, blocks: 22, digs: 94, attacks: 234 } },
-  { id: "p4", name: "Ivan Zaytsev", position: "Opposite Hitter", team: "ITA", country: "Italy", number: 9, stats: { points: 276, aces: 42, blocks: 19, digs: 65, attacks: 215 } },
-  { id: "p5", name: "Matt Anderson", position: "Outside Hitter", team: "USA", country: "USA", number: 1, stats: { points: 264, aces: 28, blocks: 24, digs: 88, attacks: 212 } },
-  { id: "p6", name: "Wallace de Souza", position: "Opposite Hitter", team: "BRA", country: "Brazil", number: 14, stats: { points: 241, aces: 19, blocks: 31, digs: 57, attacks: 191 } },
-  { id: "p7", name: "Micah Christenson", position: "Setter", team: "USA", country: "USA", number: 11, stats: { points: 82, aces: 18, blocks: 6, digs: 112, attacks: 58 } },
-  { id: "p8", name: "Yuki Ishikawa", position: "Outside Hitter", team: "JPN", country: "Japan", number: 11, stats: { points: 231, aces: 24, blocks: 18, digs: 92, attacks: 189 } },
+  { id: "p1", name: "Matt Anderson", position: "Outside Hitter", team: "USA", country: "USA", number: 1, stats: { points: 312, aces: 35, blocks: 24, digs: 88, attacks: 253 } },
+  { id: "p2", name: "Micah Christenson", position: "Setter", team: "USA", country: "USA", number: 11, stats: { points: 82, aces: 18, blocks: 6, digs: 112, attacks: 58 } },
+  { id: "p3", name: "Taylor Averill", position: "Middle Blocker", team: "USA", country: "USA", number: 17, stats: { points: 178, aces: 12, blocks: 52, digs: 28, attacks: 114 } },
+  { id: "p4", name: "Aaron Russell", position: "Outside Hitter", team: "USA", country: "USA", number: 2, stats: { points: 264, aces: 28, blocks: 20, digs: 76, attacks: 216 } },
+  { id: "p5", name: "Maxwell Holt", position: "Middle Blocker", team: "USA", country: "USA", number: 18, stats: { points: 156, aces: 9, blocks: 48, digs: 22, attacks: 99 } },
+  { id: "p6", name: "David Smith", position: "Opposite Hitter", team: "USA", country: "USA", number: 7, stats: { points: 241, aces: 19, blocks: 31, digs: 57, attacks: 191 } },
+  { id: "p7", name: "Kawika Shoji", position: "Setter", team: "USA", country: "USA", number: 16, stats: { points: 71, aces: 14, blocks: 4, digs: 98, attacks: 53 } },
+  { id: "p8", name: "Erik Shoji", position: "Libero", team: "USA", country: "USA", number: 21, stats: { points: 12, aces: 8, blocks: 0, digs: 198, attacks: 4 } },
 ];
 
 export const NEWS: NewsItem[] = [
-  { id: "n1", title: "Brazil Dominates Pool A After Six Straight Wins", summary: "The Brazilian national team showed their championship pedigree with a flawless run through Pool A, setting up a semifinal clash against France.", category: "VNL 2026", date: "2 hours ago", readTime: 3 },
-  { id: "n2", title: "Wilfredo Leon Named MVP of Week 3", summary: "Poland's powerhouse outside hitter recorded 98 points across three matches, earning his fourth consecutive Player of the Week award.", category: "Awards", date: "5 hours ago", readTime: 2 },
-  { id: "n3", title: "VNL Finals Draw: A Preview of What's to Come", summary: "With semifinals set and four nations remaining, analysts break down each team's chances of claiming the VNL trophy.", category: "Analysis", date: "Yesterday", readTime: 5 },
-  { id: "n4", title: "Italy's Comeback Against Serbia in Five Sets", summary: "In one of the most thrilling matches of the tournament, Italy rallied from two sets down to clinch a vital 3-2 victory.", category: "VNL 2026", date: "Yesterday", readTime: 4 },
-  { id: "n5", title: "Japan's Young Stars Making Their Mark Internationally", summary: "A new generation of Japanese talent is taking the volleyball world by storm, with Ishikawa leading the charge for a strong VNL finish.", category: "Feature", date: "2 days ago", readTime: 6 },
-  { id: "n6", title: "N'Gapeth Injury Update: France Hopeful For Semis", summary: "French star Earvin N'Gapeth was seen training lightly after missing the last group match, boosting France's semifinals hopes.", category: "Injury", date: "2 days ago", readTime: 2 },
+  { id: "n1", title: "Team USA Leads VNL Pool With Six Straight Wins", summary: "The US Men's National Team is on fire this VNL season, dominating Pool A and setting up a thrilling semifinal run as they chase their first VNL title.", category: "VNL 2026", date: "2 hours ago", readTime: 3 },
+  { id: "n2", title: "Matt Anderson Named VNL Week 3 MVP", summary: "USA's powerhouse outside hitter recorded 98 points across three matches, earning his fourth career Player of the Week award and cementing his MVP status.", category: "Awards", date: "5 hours ago", readTime: 2 },
+  { id: "n3", title: "Breaking Down USA's Semifinal Chances", summary: "With a perfect pool record, analysts break down Team USA's chances of claiming the VNL trophy and what it means for Olympic qualification.", category: "Analysis", date: "Yesterday", readTime: 5 },
+  { id: "n4", title: "USA Sweeps Japan 3-0 in Dominant Display", summary: "Team USA showed their championship form with a dominant sweep of Japan, with Anderson and Russell combining for 58 points in the match.", category: "VNL 2026", date: "Yesterday", readTime: 4 },
+  { id: "n5", title: "Erik Shoji's Record-Breaking Dig Performance", summary: "USA libero Erik Shoji set a new VNL record for most digs in a single match with 38, anchoring a phenomenal defensive performance against Brazil.", category: "Feature", date: "2 days ago", readTime: 6 },
+  { id: "n6", title: "Christenson on USA's Championship Mindset", summary: "Setter Micah Christenson speaks about the team's unified goal heading into the VNL Finals and their preparation for the toughest competition ahead.", category: "Interview", date: "2 days ago", readTime: 4 },
 ];

@@ -44,16 +44,22 @@ export default function PlayersScreen() {
       showsVerticalScrollIndicator={false}
     >
       <LinearGradient
-        colors={["#0B3060", C.primary]}
+        colors={["#002080", "#001F5B"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
+      />
+      <LinearGradient
+        colors={["#BF0D3E", "transparent"]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.headerGradient, { opacity: 0.2 }]}
       />
 
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.heading}>Players</Text>
-          <Text style={styles.subheading}>Season Leaders</Text>
+          <Text style={styles.subheading}>USA National Team</Text>
         </View>
         <View style={styles.badge}>
           <Ionicons name="person" size={14} color={C.accent} />
@@ -137,11 +143,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(245,166,35,0.15)",
+    backgroundColor: "rgba(191,13,62,0.15)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(245,166,35,0.3)",
+    borderColor: "rgba(191,13,62,0.35)",
   },
   tabsScroll: {
     marginBottom: 20,
