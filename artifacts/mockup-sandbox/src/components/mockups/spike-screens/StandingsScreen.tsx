@@ -55,8 +55,8 @@ function PodiumCard() {
               <div style={{ width: 46, height: 46, borderRadius: 23, border: `2px solid ${medal}60`, display: "flex", alignItems: "center", justifyContent: "center", background: `${medal}35`, marginBottom: 4, overflow: "hidden" }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: medal, fontFamily: "Inter", letterSpacing: "0.3px" }}>{team.code}</span>
               </div>
-              <span style={{ fontSize: 12, fontWeight: 700, color: TEXT, fontFamily: "Inter", textAlign: "center" }}>{team.name}</span>
-              <span style={{ fontSize: 9, color: MUTED, fontFamily: "Inter", textAlign: "center" }}>{team.country}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: TEXT, fontFamily: "Inter", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%", maxWidth: 90 }}>{team.name}</span>
+              <span style={{ fontSize: 9, color: MUTED, fontFamily: "Inter", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%", maxWidth: 90 }}>{team.country}</span>
               <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(232,236,245,0.7)", fontFamily: "Inter", marginBottom: 4 }}>{team.pts} pts</span>
               <div style={{ width: "100%", height: h, background: `${medal}22`, border: `1px solid ${medal}40`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: medal, fontFamily: "Inter", letterSpacing: 1, padding: "6px 0" }}>{lbl}</span>
@@ -84,19 +84,19 @@ function TeamRow({ team, rank }: { team: typeof TEAMS[0]; rank: number }) {
       <div style={{ width: 34, height: 34, borderRadius: 17, border: `1.5px solid ${borderColor}50`, background: `${borderColor}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: rankColor ?? discColor, fontFamily: "Inter", letterSpacing: "0.3px" }}>{team.code}</span>
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: "Inter" }}>{team.name}</div>
-        <div style={{ fontSize: 10, color: MUTED, fontFamily: "Inter", marginTop: 1 }}>{team.country}</div>
+      <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, fontFamily: "Inter", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{team.name}</div>
+        <div style={{ fontSize: 10, color: MUTED, fontFamily: "Inter", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{team.country}</div>
       </div>
-      <div style={{ display: "flex", gap: 3, width: 75, justifyContent: "center" }}>
+      <div style={{ display: "flex", gap: 2, width: 82, justifyContent: "center", flexShrink: 0 }}>
         {team.form.map((f, i) => (
-          <div key={i} style={{ width: 18, height: 18, borderRadius: 5, background: f === "W" ? "rgba(45,197,121,0.2)" : "rgba(232,72,85,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 9, fontWeight: 700, color: f === "W" ? SUCCESS : DANGER, fontFamily: "Inter" }}>{f}</span>
+          <div key={i} style={{ width: 15, height: 15, borderRadius: 4, background: f === "W" ? "rgba(45,197,121,0.2)" : "rgba(232,72,85,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <span style={{ fontSize: 8, fontWeight: 700, color: f === "W" ? SUCCESS : DANGER, fontFamily: "Inter" }}>{f}</span>
           </div>
         ))}
       </div>
-      <span style={{ width: 40, textAlign: "center", fontSize: 12, color: "rgba(232,236,245,0.7)", fontFamily: "Inter", fontWeight: 500 }}>{team.wins}-{team.losses}</span>
-      <span style={{ width: 40, textAlign: "center", fontSize: 13, color: ACCENT, fontFamily: "Inter", fontWeight: 700 }}>{team.pts}</span>
+      <span style={{ width: 36, textAlign: "center", fontSize: 12, color: "rgba(232,236,245,0.7)", fontFamily: "Inter", fontWeight: 500, flexShrink: 0 }}>{team.wins}-{team.losses}</span>
+      <span style={{ width: 32, textAlign: "center", fontSize: 13, color: ACCENT, fontFamily: "Inter", fontWeight: 700, flexShrink: 0 }}>{team.pts}</span>
       <div style={{ width: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Star size={18} color="#FFD700" fill={rank <= 2 ? "#FFD700" : "transparent"} />
       </div>
@@ -129,10 +129,10 @@ export function StandingsScreen() {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 16, overflowX: "hidden" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 16, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 2 }}>
           {tabs.map((tab, i) => (
-            <div key={tab} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 20, background: i === 0 ? "#3A7BF5" : CARD, border: `1px solid ${i === 0 ? "#3A7BF5" : BORDER}`, whiteSpace: "nowrap" }}>
-              <span style={{ fontSize: 12, color: "#fff", fontFamily: "Inter", fontWeight: 600 }}>{tab}</span>
+            <div key={tab} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 20, background: i === 0 ? "#3A7BF5" : CARD, border: `1px solid ${i === 0 ? "#3A7BF5" : BORDER}`, whiteSpace: "nowrap", flexShrink: 0 }}>
+              <span style={{ fontSize: 12, color: i === 0 ? "#fff" : MUTED, fontFamily: "Inter", fontWeight: 600 }}>{tab}</span>
             </div>
           ))}
         </div>
@@ -145,9 +145,9 @@ export function StandingsScreen() {
             <span style={{ width: 20, fontSize: 10, color: MUTED, fontFamily: "Inter", fontWeight: 600, textAlign: "center" }}>#</span>
             <div style={{ width: 34 }} />
             <span style={{ flex: 1, fontSize: 10, color: MUTED, fontFamily: "Inter", fontWeight: 600 }}>Team</span>
-            <span style={{ width: 75, fontSize: 10, color: MUTED, fontFamily: "Inter", fontWeight: 600, textAlign: "center" }}>Form</span>
-            <span style={{ width: 40, fontSize: 10, color: MUTED, fontFamily: "Inter", fontWeight: 600, textAlign: "center" }}>W-L</span>
-            <span style={{ width: 40, fontSize: 10, color: ACCENT, fontFamily: "Inter", fontWeight: 600, textAlign: "center" }}>Pts</span>
+            <span style={{ width: 82, fontSize: 10, color: MUTED, fontFamily: "Inter", fontWeight: 600, textAlign: "center", flexShrink: 0 }}>Form</span>
+            <span style={{ width: 36, fontSize: 10, color: MUTED, fontFamily: "Inter", fontWeight: 600, textAlign: "center", flexShrink: 0 }}>W-L</span>
+            <span style={{ width: 32, fontSize: 10, color: ACCENT, fontFamily: "Inter", fontWeight: 600, textAlign: "center", flexShrink: 0 }}>Pts</span>
             <div style={{ width: 28 }} />
           </div>
           {TEAMS.map((team, i) => <TeamRow key={team.code} team={team} rank={i + 1} />)}
