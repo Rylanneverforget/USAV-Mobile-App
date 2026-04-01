@@ -15,35 +15,53 @@ import Colors from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { TEAMS } from "@/constants/data";
 import type { VolleyballRole, ExperienceLevel, ContentInterest, UserPreferences } from "@/context/AppContext";
+import {
+  VolleyballSvg,
+  SpikeIcon,
+  NetCourtIcon,
+  JerseyIcon,
+  OlympicsIcon,
+} from "@/components/VolleyballIcons";
 
 const C = Colors.light;
 
-type RoleOption = { id: VolleyballRole; label: string; description: string; icon: string };
-type LevelOption = { id: ExperienceLevel; label: string; description: string };
-type InterestOption = { id: ContentInterest; label: string; icon: string };
+type RoleOption = {
+  id: VolleyballRole;
+  label: string;
+  description: string;
+  SvgIcon?: React.ComponentType<{ size?: number; color?: string }>;
+  icon?: string;
+};
+type LevelOption = { id: ExperienceLevel; label: string; description: string; icon: string };
+type InterestOption = {
+  id: ContentInterest;
+  label: string;
+  SvgIcon?: React.ComponentType<{ size?: number; color?: string }>;
+  icon?: string;
+};
 
 const ROLES: RoleOption[] = [
-  { id: "fan", label: "Fan", description: "I love watching volleyball", icon: "heart" },
-  { id: "player", label: "Player", description: "I play volleyball", icon: "basketball" },
-  { id: "coach", label: "Coach", description: "I coach a team", icon: "people" },
+  { id: "fan", label: "Fan", description: "I love watching volleyball", SvgIcon: VolleyballSvg },
+  { id: "player", label: "Player", description: "I play volleyball", SvgIcon: SpikeIcon },
+  { id: "coach", label: "Coach", description: "I coach a team", SvgIcon: NetCourtIcon },
   { id: "referee", label: "Referee", description: "I officiate matches", icon: "flag" },
   { id: "media", label: "Media", description: "I cover volleyball", icon: "mic" },
 ];
 
 const LEVELS: LevelOption[] = [
-  { id: "recreational", label: "Recreational", description: "Just for fun" },
-  { id: "club", label: "Club", description: "Competitive club play" },
-  { id: "collegiate", label: "Collegiate", description: "College / university level" },
-  { id: "professional", label: "Professional", description: "Elite or pro level" },
+  { id: "recreational", label: "Recreational", description: "Just for fun", icon: "happy-outline" },
+  { id: "club", label: "Club", description: "Competitive club play", icon: "people-outline" },
+  { id: "collegiate", label: "Collegiate", description: "College / university level", icon: "school-outline" },
+  { id: "professional", label: "Professional", description: "Elite or pro level", icon: "star-outline" },
 ];
 
 const INTERESTS: InterestOption[] = [
-  { id: "live_scores", label: "Live Scores", icon: "flash" },
-  { id: "match_results", label: "Match Results", icon: "trophy" },
-  { id: "player_stats", label: "Player Stats", icon: "bar-chart" },
+  { id: "live_scores", label: "Live Scores", SvgIcon: SpikeIcon },
+  { id: "match_results", label: "Match Results", SvgIcon: NetCourtIcon },
+  { id: "player_stats", label: "Player Stats", SvgIcon: JerseyIcon },
   { id: "team_news", label: "Team News", icon: "newspaper" },
-  { id: "training_tips", label: "Training Tips", icon: "fitness" },
-  { id: "olympics", label: "Olympics", icon: "medal" },
+  { id: "training_tips", label: "Training Tips", SvgIcon: VolleyballSvg },
+  { id: "olympics", label: "Olympics", SvgIcon: OlympicsIcon },
 ];
 
 const STEPS = ["role", "level", "teams", "interests"] as const;
@@ -214,60 +232,86 @@ export default function OnboardingScreen() {
         >
           {step === "role" && (
             <View style={styles.stepContent}>
-              <Text style={styles.stepEmoji}>🏐</Text>
+              <View style={styles.stepSvgHeader}>
+                <VolleyballSvg size={44} color={C.accent} />
+              </View>
               <Text style={styles.stepTitle}>How do you participate?</Text>
               <Text style={styles.stepSubtitle}>
                 We'll personalize your experience based on your role in volleyball.
               </Text>
               <View style={styles.optionList}>
-                {ROLES.map((r) => (
-                  <SelectionCard key={r.id} selected={role === r.id} onPress={() => setRole(r.id)}>
-                    <View style={styles.roleCardInner}>
-                      <View style={[styles.roleIcon, role === r.id && styles.roleIconSelected]}>
-                        <Ionicons name={r.icon as any} size={22} color={role === r.id ? "#fff" : C.textSecondary} />
+                {ROLES.map((r) => {
+                  const isSelected = role === r.id;
+                  const iconColor = isSelected ? C.accent : C.textSecondary;
+                  return (
+                    <SelectionCard key={r.id} selected={isSelected} onPress={() => setRole(r.id)}>
+                      <View style={styles.roleCardInner}>
+                        <View style={[styles.roleIcon, isSelected && styles.roleIconSelected]}>
+                          {r.SvgIcon ? (
+                            <r.SvgIcon size={22} color={iconColor} />
+                          ) : (
+                            <Ionicons name={r.icon as any} size={22} color={iconColor} />
+                          )}
+                        </View>
+                        <View style={styles.roleText}>
+                          <Text style={[styles.roleLabel, isSelected && styles.roleLabelSelected]}>
+                            {r.label}
+                          </Text>
+                          <Text style={styles.roleDescription}>{r.description}</Text>
+                        </View>
                       </View>
-                      <View style={styles.roleText}>
-                        <Text style={[styles.roleLabel, role === r.id && styles.roleLabelSelected]}>
-                          {r.label}
-                        </Text>
-                        <Text style={styles.roleDescription}>{r.description}</Text>
-                      </View>
-                    </View>
-                  </SelectionCard>
-                ))}
+                    </SelectionCard>
+                  );
+                })}
               </View>
             </View>
           )}
 
           {step === "level" && (
             <View style={styles.stepContent}>
-              <Text style={styles.stepEmoji}>🎯</Text>
+              <View style={styles.stepSvgHeader}>
+                <NetCourtIcon size={44} color={C.accent} />
+              </View>
               <Text style={styles.stepTitle}>What's your level?</Text>
               <Text style={styles.stepSubtitle}>
                 Help us show you relevant drills, strategies, and content.
               </Text>
               <View style={styles.optionList}>
-                {LEVELS.map((l) => (
-                  <SelectionCard
-                    key={l.id}
-                    selected={experienceLevel === l.id}
-                    onPress={() => setExperienceLevel(l.id)}
-                  >
-                    <View style={styles.levelCardInner}>
-                      <Text style={[styles.levelLabel, experienceLevel === l.id && styles.roleLabelSelected]}>
-                        {l.label}
-                      </Text>
-                      <Text style={styles.roleDescription}>{l.description}</Text>
-                    </View>
-                  </SelectionCard>
-                ))}
+                {LEVELS.map((l) => {
+                  const isSelected = experienceLevel === l.id;
+                  return (
+                    <SelectionCard
+                      key={l.id}
+                      selected={isSelected}
+                      onPress={() => setExperienceLevel(l.id)}
+                    >
+                      <View style={styles.roleCardInner}>
+                        <View style={[styles.roleIcon, isSelected && styles.roleIconSelected]}>
+                          <Ionicons
+                            name={l.icon as any}
+                            size={20}
+                            color={isSelected ? C.accent : C.textSecondary}
+                          />
+                        </View>
+                        <View style={styles.roleText}>
+                          <Text style={[styles.levelLabel, isSelected && styles.roleLabelSelected]}>
+                            {l.label}
+                          </Text>
+                          <Text style={styles.roleDescription}>{l.description}</Text>
+                        </View>
+                      </View>
+                    </SelectionCard>
+                  );
+                })}
               </View>
             </View>
           )}
 
           {step === "teams" && (
             <View style={styles.stepContent}>
-              <Text style={styles.stepEmoji}>⭐</Text>
+              <View style={styles.stepSvgHeader}>
+                <JerseyIcon size={44} color={C.accent} />
+              </View>
               <Text style={styles.stepTitle}>Favorite teams</Text>
               <Text style={styles.stepSubtitle}>
                 Select any teams you want to follow. You can change this later.
@@ -296,33 +340,39 @@ export default function OnboardingScreen() {
 
           {step === "interests" && (
             <View style={styles.stepContent}>
-              <Text style={styles.stepEmoji}>📊</Text>
+              <View style={styles.stepSvgHeader}>
+                <OlympicsIcon size={44} color={C.accent} />
+              </View>
               <Text style={styles.stepTitle}>What matters to you?</Text>
               <Text style={styles.stepSubtitle}>
                 Choose the content you care about most. Pick as many as you like.
               </Text>
               <View style={styles.interestGrid}>
-                {INTERESTS.map((interest) => (
-                  <SelectionCard
-                    key={interest.id}
-                    selected={contentInterests.includes(interest.id)}
-                    onPress={() => toggleInterest(interest.id)}
-                  >
-                    <View style={styles.interestCardInner}>
-                      <Ionicons
-                        name={interest.icon as any}
-                        size={24}
-                        color={contentInterests.includes(interest.id) ? C.accent : C.textSecondary}
-                      />
-                      <Text style={[
-                        styles.interestLabel,
-                        contentInterests.includes(interest.id) && styles.interestLabelSelected,
-                      ]}>
-                        {interest.label}
-                      </Text>
-                    </View>
-                  </SelectionCard>
-                ))}
+                {INTERESTS.map((interest) => {
+                  const isSelected = contentInterests.includes(interest.id);
+                  const iconColor = isSelected ? C.accent : C.textSecondary;
+                  return (
+                    <SelectionCard
+                      key={interest.id}
+                      selected={isSelected}
+                      onPress={() => toggleInterest(interest.id)}
+                    >
+                      <View style={styles.interestCardInner}>
+                        {interest.SvgIcon ? (
+                          <interest.SvgIcon size={24} color={iconColor} />
+                        ) : (
+                          <Ionicons name={interest.icon as any} size={24} color={iconColor} />
+                        )}
+                        <Text style={[
+                          styles.interestLabel,
+                          isSelected && styles.interestLabelSelected,
+                        ]}>
+                          {interest.label}
+                        </Text>
+                      </View>
+                    </SelectionCard>
+                  );
+                })}
               </View>
             </View>
           )}
@@ -429,6 +479,9 @@ const styles = StyleSheet.create({
   },
   stepContent: {
     gap: 6,
+  },
+  stepSvgHeader: {
+    marginBottom: 8,
   },
   stepEmoji: {
     fontSize: 40,
