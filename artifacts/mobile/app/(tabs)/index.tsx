@@ -301,6 +301,11 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <View style={styles.usavBar}>
+        <VolleyballSvg size={12} color={C.accent} />
+        <Text style={styles.usavBarText}>Powered by USA Volleyball</Text>
+      </View>
+
       {preferences.contentInterests.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.interestBar} contentContainerStyle={styles.interestBarContent}>
           {preferences.contentInterests.map((interest) => {
@@ -404,7 +409,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.primary },
   headerGradient: { position: "absolute", top: 0, left: 0, right: 0, height: 250 },
   content: { paddingHorizontal: 16 },
-  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  usavBar: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: "rgba(191,13,62,0.07)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: "rgba(191,13,62,0.18)", marginBottom: 14 },
+  usavBarText: { fontSize: 11, color: C.accent, fontFamily: "Inter_600SemiBold", letterSpacing: 0.3 },
   headerLeft: { flex: 1 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
   greeting: { fontSize: 28, color: C.text, fontFamily: "Inter_700Bold" },

@@ -14,6 +14,7 @@ import TeamRow from "@/components/TeamRow";
 import Colors from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { ALL_TEAMS, type Discipline, DISCIPLINE_LABELS } from "@/constants/data";
+import { VolleyballSvg } from "@/components/VolleyballIcons";
 
 const C = Colors.light;
 const WEB_TOP_INSET = 67;
@@ -72,6 +73,11 @@ export default function StandingsScreen() {
         <View style={styles.badge}>
           <Ionicons name="podium" size={14} color={C.accent} />
         </View>
+      </View>
+
+      <View style={styles.usavBar}>
+        <VolleyballSvg size={12} color={C.accent} />
+        <Text style={styles.usavText}>Powered by USA Volleyball</Text>
       </View>
 
       <ScrollView
@@ -150,7 +156,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.primary },
   headerGradient: { position: "absolute", top: 0, left: 0, right: 0, height: 200 },
   content: { paddingHorizontal: 16 },
-  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  usavBar: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: "rgba(191,13,62,0.07)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: "rgba(191,13,62,0.18)", marginBottom: 14 },
+  usavText: { fontSize: 11, color: C.accent, fontFamily: "Inter_600SemiBold", letterSpacing: 0.3 },
   heading: { fontSize: 28, color: C.text, fontFamily: "Inter_700Bold" },
   subheading: { fontSize: 13, color: C.textSecondary, fontFamily: "Inter_400Regular", marginTop: 2 },
   badge: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(191,13,62,0.15)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(191,13,62,0.35)" },

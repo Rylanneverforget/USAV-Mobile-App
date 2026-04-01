@@ -164,8 +164,11 @@ export default function LoginScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
+          <View style={styles.usavBadge}>
+            <VolleyballSvg size={14} color={C.accent} />
+            <Text style={styles.usavText}>Powered by USA Volleyball</Text>
+          </View>
           <Text style={styles.footerText}>
-            Powered by{" "}
             <Text style={styles.footerBrand}>FIVB</Text>
             {"  ·  "}
             <Text style={styles.footerBrand}>VNL 2026</Text>
@@ -353,9 +356,27 @@ const styles = StyleSheet.create({
   /* Footer */
   footer: {
     alignItems: "center",
+    gap: 8,
+  },
+  usavBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(191,13,62,0.1)",
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: "rgba(191,13,62,0.28)",
+  },
+  usavText: {
+    fontSize: 12,
+    color: C.accent,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 0.2,
   },
   footerText: {
-    fontSize: 12,
+    fontSize: 11,
     color: "rgba(255,255,255,0.25)",
     fontFamily: "Inter_400Regular",
   },
