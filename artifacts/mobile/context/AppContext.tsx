@@ -125,9 +125,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const resetOnboarding = useCallback(async () => {
     setIsOnboarded(false);
-    setPreferences(DEFAULT_PREFERENCES);
     await AsyncStorage.removeItem("onboarding_complete");
-    await AsyncStorage.removeItem("user_preferences");
   }, []);
 
   const filteredMatches = preferences.disciplines.length > 0

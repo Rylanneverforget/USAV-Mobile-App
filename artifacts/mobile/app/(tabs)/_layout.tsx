@@ -1,9 +1,9 @@
 import { BlurView } from "expo-blur";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
-import React from "react";
+import React, { useEffect } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import Colors from "@/constants/colors";
 import {
@@ -13,6 +13,8 @@ import {
   OlympicsIcon,
   NewsScrollIcon,
 } from "@/components/VolleyballIcons";
+import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/lib/auth";
 
 const C = Colors.light;
 
@@ -140,6 +142,16 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
+  const { isOnboarded } = useApp();
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated && !isOnboarded) {
+      router.replace("/onboarding");
+    }
+  }, [isOnboarded, isAuthenticated]);
+
   if (isLiquidGlassAvailable()) {
     return <NativeTabLayout />;
   }

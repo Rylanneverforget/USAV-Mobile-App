@@ -111,21 +111,30 @@ function SelectionCard({ selected, onPress, children }: { selected: boolean; onP
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
-  const { completeOnboarding } = useApp();
+  const { completeOnboarding, preferences } = useApp();
 
   const [stepIndex, setStepIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const [role, setRole] = useState<VolleyballRole | null>(null);
-  const [disciplines, setDisciplines] = useState<Discipline[]>(["mens"]);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | null>(null);
-  const [contentInterests, setContentInterests] = useState<ContentInterest[]>([]);
-  const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
+  const [role, setRole] = useState<VolleyballRole | null>(preferences.role);
+  const [disciplines, setDisciplines] = useState<Discipline[]>(preferences.disciplines.length > 0 ? preferences.disciplines : ["mens"]);
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | null>(preferences.experienceLevel);
+  const [contentInterests, setContentInterests] = useState<ContentInterest[]>(preferences.contentInterests);
+  const [favoriteTeams, setFavoriteTeams] = useState<string[]>(preferences.favoriteTeams);
 
-  // Junior club state
-  const [juniorRole, setJuniorRole] = useState<JuniorClubRole | "skip" | null>(null);
-  const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string | null>(null);
+  // Junior club state — pre-populate from existing prefs.
+  // If they've completed onboarding before (role is set) but have no junior club,
+  // they previously skipped, so default to "skip" so they aren't blocked.
+  const isReturningUser = preferences.role !== null;
+  const [juniorRole, setJuniorRole] = useState<JuniorClubRole | "skip" | null>(
+    preferences.juniorClub ? preferences.juniorClub.role : isReturningUser ? "skip" : null
+  );
+  const [selectedClubId, setSelectedClubId] = useState<string | null>(
+    preferences.juniorClub ? preferences.juniorClub.clubId : null
+  );
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string | null>(
+    preferences.juniorClub ? preferences.juniorClub.ageGroup : null
+  );
 
   const step = STEPS[stepIndex];
   const showLevelStep = role === "player" || role === "coach";
