@@ -6,5 +6,6 @@ export const modules: ModuleMap = {
   "./components/mockups/spike-screens/MatchesScreen.tsx": () => import("../components/mockups/spike-screens/MatchesScreen.tsx"),
   "./components/mockups/spike-screens/NewsScreen.tsx": () => import("../components/mockups/spike-screens/NewsScreen.tsx"),
   "./components/mockups/spike-screens/PlayersScreen.tsx": () => import("../components/mockups/spike-screens/PlayersScreen.tsx"),
-  "./components/mockups/spike-screens/StandingsScreen.tsx": () => import("../components/mockups/spike-screens/StandingsScreen.tsx")
+  "./components/mockups/spike-screens/StandingsScreen.tsx": () => import("../components/mockups/spike-screens/StandingsScreen.tsx"),
+  "./components/mockups/spike-screens/TournamentDetailScreen.tsx": () => import("../components/mockups/spike-screens/TournamentDetailScreen.tsx")
 };
