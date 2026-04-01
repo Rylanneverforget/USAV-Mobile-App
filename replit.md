@@ -48,17 +48,33 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 - `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
 - `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
 
+## Multi-Discipline Volleyball Coverage
+
+Spike covers the full volleyball universe across 6 disciplines:
+- **Men's** — VNL 2026 (8 international teams)
+- **Women's** — VNL 2026 (8 international teams, inc. Turkey, Serbia, China)
+- **Beach** — FIVB Beach Pro Tour (8 pairs)
+- **Sitting** — World Para Volleyball (6 teams, Paralympic-focused)
+- **NCAA Women's** — 10 top programs (Nebraska, Texas, Stanford, Kentucky, Pitt, Wisconsin, Penn State, UCLA, Louisville, Ohio State)
+- **NCAA Men's** — 8 programs (BYU, Long Beach State, UCLA, Hawaii, Stanford, Pepperdine, Penn State, Grand Canyon)
+
+Data lives in `constants/data.ts`. Each `Team`, `Match`, `Player`, and `NewsItem` has a `discipline` field.
+
 ## Onboarding Flow (Mobile)
 
 A multi-step onboarding wizard runs after the user signs in for the first time:
 
 - `app/index.tsx` — root redirect: checks auth + onboarding state and routes to `/login`, `/onboarding`, or `/(tabs)`
 - `app/login.tsx` — branded "Spike" login screen with Replit OIDC sign-in
-- `app/onboarding.tsx` — 4-step wizard: role selection → experience level (players/coaches only) → favorite teams → content interests
-- `context/AppContext.tsx` — stores `UserPreferences` (role, experienceLevel, favoriteTeams, contentInterests) in AsyncStorage; `completeOnboarding()` saves prefs and sets `isOnboarded: true`
-- `app/(tabs)/index.tsx` — home screen personalizes content based on preferences (shows training tips for players/coaches, Olympics section if selected, quick-access interest chips, etc.)
+- `app/onboarding.tsx` — 5-step wizard: role → **discipline selection** → experience level (players/coaches only) → team selection (filtered by selected disciplines) → content interests
+- `context/AppContext.tsx` — stores `UserPreferences` (role, disciplines, experienceLevel, favoriteTeams, contentInterests) in AsyncStorage; `completeOnboarding()` saves prefs and sets `isOnboarded: true`
+- `app/(tabs)/index.tsx` — home screen shows a multi-discipline feed with per-discipline banners, live match badges, favorite team chips, and discipline filter pills
+- `app/(tabs)/standings.tsx` — horizontal discipline tab bar (Men's / Women's / Beach / Sitting / NCAA ♀ / NCAA ♂), defaults to user's primary discipline
+- `app/(tabs)/players.tsx` — discipline row + stat category row, filters PLAYERS array accordingly
 
 To reset onboarding (for testing): tap the profile avatar on the home screen.
+
+**NOTE: Twilio SMS was proposed but dismissed by the user. Do not re-propose automatically.**
 
 ## Authentication
 

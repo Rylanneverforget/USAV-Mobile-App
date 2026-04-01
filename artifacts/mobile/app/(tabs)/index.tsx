@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   Platform,
   Pressable,
@@ -16,18 +15,11 @@ import NewsCard from "@/components/NewsCard";
 import Colors from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useAuth } from "@/lib/auth";
+import { MATCHES, NEWS, ALL_TEAMS, type Discipline } from "@/constants/data";
 import type { VolleyballRole, ContentInterest } from "@/context/AppContext";
 
 const C = Colors.light;
 const WEB_TOP_INSET = 67;
-
-const ROLE_LABELS: Record<VolleyballRole, string> = {
-  fan: "Fan",
-  player: "Player",
-  coach: "Coach",
-  referee: "Referee",
-  media: "Media",
-};
 
 const ROLE_GREETINGS: Record<VolleyballRole, string> = {
   fan: "Ready for game day?",
@@ -37,31 +29,35 @@ const ROLE_GREETINGS: Record<VolleyballRole, string> = {
   media: "Stay on top of the action.",
 };
 
+const ROLE_LABELS: Record<VolleyballRole, string> = {
+  fan: "Fan", player: "Player", coach: "Coach", referee: "Referee", media: "Media",
+};
+
 const INTEREST_ICONS: Record<ContentInterest, string> = {
-  live_scores: "flash",
-  match_results: "trophy",
-  player_stats: "bar-chart",
-  team_news: "newspaper",
-  training_tips: "fitness",
-  olympics: "medal",
+  live_scores: "flash", match_results: "trophy", player_stats: "bar-chart",
+  team_news: "newspaper", training_tips: "fitness", olympics: "medal",
 };
 
 const INTEREST_LABELS: Record<ContentInterest, string> = {
-  live_scores: "Live Scores",
-  match_results: "Results",
-  player_stats: "Stats",
-  team_news: "Team News",
-  training_tips: "Training",
-  olympics: "Olympics",
+  live_scores: "Live", match_results: "Results", player_stats: "Stats",
+  team_news: "News", training_tips: "Training", olympics: "Olympics",
 };
+
+const DISCIPLINE_CONFIG: Record<Discipline, { label: string; icon: string; color: string; bg: string; tournament: string }> = {
+  mens:       { label: "Men's",        icon: "male",           color: "#3A7BF5", bg: "rgba(58,123,245,0.12)",  tournament: "VNL 2026" },
+  womens:     { label: "Women's",      icon: "female",         color: "#E04E8A", bg: "rgba(224,78,138,0.12)", tournament: "VNL 2026" },
+  beach:      { label: "Beach",        icon: "sunny",          color: "#F5A623", bg: "rgba(245,166,35,0.12)",  tournament: "Beach Pro Tour" },
+  sitting:    { label: "Sitting",      icon: "accessibility",  color: "#44C98E", bg: "rgba(68,201,142,0.12)", tournament: "World Para VB" },
+  ncaa_womens:{ label: "NCAA Women's", icon: "school",         color: "#E04E8A", bg: "rgba(224,78,138,0.12)", tournament: "NCAA 2025-26" },
+  ncaa_mens:  { label: "NCAA Men's",   icon: "school-outline", color: "#3A7BF5", bg: "rgba(58,123,245,0.12)",  tournament: "NCAA 2025-26" },
+};
+
+const ALL_DISCIPLINES: Discipline[] = ["mens", "womens", "beach", "sitting", "ncaa_womens", "ncaa_mens"];
 
 function ProfileBadge({ onPress }: { onPress: () => void }) {
   const { user } = useAuth();
   const { preferences } = useApp();
-  const initials = user?.firstName
-    ? user.firstName[0] + (user.lastName?.[0] ?? "")
-    : "?";
-
+  const initials = user?.firstName ? user.firstName[0] + (user.lastName?.[0] ?? "") : "?";
   return (
     <Pressable onPress={onPress} style={styles.profileBadge}>
       <View style={styles.profileAvatar}>
@@ -76,124 +72,149 @@ function ProfileBadge({ onPress }: { onPress: () => void }) {
   );
 }
 
-function QuickAccessBar({ interests }: { interests: ContentInterest[] }) {
-  if (interests.length === 0) return null;
-  const shown = interests.slice(0, 5);
+type DisciplinePillProps = { disc: Discipline; active: boolean; onPress: () => void };
+function DisciplinePill({ disc, active, onPress }: DisciplinePillProps) {
+  const cfg = DISCIPLINE_CONFIG[disc];
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={styles.quickBar}
-      contentContainerStyle={styles.quickBarContent}
+    <Pressable
+      onPress={onPress}
+      style={[styles.discPill, active && { backgroundColor: cfg.color, borderColor: cfg.color }]}
     >
-      {shown.map((interest) => (
-        <View key={interest} style={styles.quickChip}>
-          <Ionicons name={INTEREST_ICONS[interest] as any} size={13} color={C.accent} />
-          <Text style={styles.quickChipText}>{INTEREST_LABELS[interest]}</Text>
-        </View>
-      ))}
-    </ScrollView>
+      <Ionicons name={cfg.icon as any} size={12} color={active ? "#fff" : C.textSecondary} />
+      <Text style={[styles.discPillText, active && { color: "#fff" }]}>{cfg.label}</Text>
+    </Pressable>
   );
 }
 
+type DisciplineSectionProps = { disc: Discipline; favoriteTeamIds: string[] };
+function DisciplineSection({ disc, favoriteTeamIds }: DisciplineSectionProps) {
+  const cfg = DISCIPLINE_CONFIG[disc];
+  const discMatches = MATCHES.filter((m) => m.discipline === disc);
+  const liveMatch = discMatches.find((m) => m.status === "live");
+  const upcomingMatches = discMatches.filter((m) => m.status === "upcoming").slice(0, 2);
+  const recentMatch = discMatches.find((m) => m.status === "finished");
+  const discNews = NEWS.filter((n) => n.discipline === disc).slice(0, 1);
+  const discTeams = ALL_TEAMS.filter((t) => t.discipline === disc && favoriteTeamIds.includes(t.id));
+
+  const hasContent = liveMatch || upcomingMatches.length > 0 || recentMatch || discNews.length > 0 || discTeams.length > 0;
+  if (!hasContent) return null;
+
+  return (
+    <View style={styles.disciplineSection}>
+      <View style={[styles.disciplineSectionHeader, { backgroundColor: cfg.bg, borderColor: `${cfg.color}30` }]}>
+        <View style={styles.disciplineSectionLeft}>
+          <View style={[styles.disciplineSectionIcon, { backgroundColor: cfg.color }]}>
+            <Ionicons name={cfg.icon as any} size={13} color="#fff" />
+          </View>
+          <View>
+            <Text style={[styles.disciplineSectionLabel, { color: cfg.color }]}>{cfg.label}</Text>
+            <Text style={styles.disciplineSectionTournament}>{cfg.tournament}</Text>
+          </View>
+        </View>
+        {liveMatch && (
+          <View style={styles.liveIndicator}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>LIVE</Text>
+          </View>
+        )}
+      </View>
+
+      {discTeams.length > 0 && (
+        <View style={styles.favTeamsRow}>
+          {discTeams.map((team) => (
+            <View key={team.id} style={styles.miniTeamChip}>
+              <Ionicons name="star" size={10} color={cfg.color} />
+              <Text style={styles.miniTeamName}>{team.shortName}</Text>
+              <Text style={styles.miniTeamRecord}>{team.wins}W-{team.losses}L</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {liveMatch && <MatchCard match={liveMatch} />}
+      {!liveMatch && upcomingMatches.map((m) => <MatchCard key={m.id} match={m} />)}
+      {!liveMatch && upcomingMatches.length === 0 && recentMatch && <MatchCard match={recentMatch} />}
+      {discNews.map((n) => <NewsCard key={n.id} item={n} />)}
+    </View>
+  );
+}
+
+const TRAINING_TIPS = [
+  { id: "1", icon: "repeat", title: "Serve Consistency", body: "Focus on tossing the ball to the same spot every time. Consistency in your toss leads to consistent serves." },
+  { id: "2", icon: "trending-up", title: "Vertical Jump Training", body: "Box jumps and depth jumps 3x/week can add 2-4 inches to your vertical in 8 weeks." },
+];
+
 export default function HomeScreen() {
-  const { matches, favorites, teams, news, preferences, resetOnboarding } = useApp();
+  const { preferences, resetOnboarding } = useApp();
   const { logout } = useAuth();
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
 
-  const liveMatch = matches.find((m) => m.status === "live");
-  const upcomingMatches = matches.filter((m) => m.status === "upcoming");
-  const recentMatches = matches.filter((m) => m.status === "finished");
-  const favoriteTeams = teams.filter((t) =>
-    (preferences.favoriteTeams.length > 0 ? preferences.favoriteTeams : favorites).includes(t.id)
-  );
+  const activeDisciplines = preferences.disciplines.length > 0 ? preferences.disciplines : ALL_DISCIPLINES;
+  const [activeFilter, setActiveFilter] = useState<Discipline | "all">("all");
 
-  const showTrainingTips =
-    preferences.contentInterests.includes("training_tips") &&
-    (preferences.role === "player" || preferences.role === "coach");
+  const displayDisciplines = activeFilter === "all" ? activeDisciplines : activeDisciplines.filter((d) => d === activeFilter);
 
+  const liveCount = MATCHES.filter((m) => m.status === "live" && activeDisciplines.includes(m.discipline)).length;
+
+  const showTrainingTips = preferences.contentInterests.includes("training_tips") && (preferences.role === "player" || preferences.role === "coach");
   const showOlympics = preferences.contentInterests.includes("olympics");
 
   const topPad = isWeb ? WEB_TOP_INSET : insets.top + 16;
-  const greeting = preferences.role ? ROLE_GREETINGS[preferences.role] : "Go USA";
+  const greeting = preferences.role ? ROLE_GREETINGS[preferences.role] : "Your volleyball universe";
 
-  const handleProfilePress = () => {
-    resetOnboarding();
-  };
+  const favoriteTeamIds = preferences.favoriteTeams;
+
+  const allNews = NEWS.filter((n) => !n.discipline || activeDisciplines.includes(n.discipline));
 
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: topPad, paddingBottom: isWeb ? 34 : insets.bottom + 90 },
-      ]}
+      contentContainerStyle={[styles.content, { paddingTop: topPad, paddingBottom: isWeb ? 34 : insets.bottom + 90 }]}
       showsVerticalScrollIndicator={false}
     >
-      <LinearGradient
-        colors={["#002080", "#001F5B"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerGradient}
-      />
-      <LinearGradient
-        colors={["#BF0D3E", "transparent"]}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={[styles.headerGradient, { opacity: 0.25 }]}
-      />
+      <LinearGradient colors={["#002080", "#001F5B"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.headerGradient} />
+      <LinearGradient colors={["#BF0D3E", "transparent"]} start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerGradient, { opacity: 0.25 }]} />
 
       <View style={styles.headerRow}>
         <View style={styles.headerLeft}>
-          <Text style={styles.greeting}>USA Volleyball</Text>
-          <Text style={styles.subtitle}>VNL 2026 · {greeting}</Text>
+          <Text style={styles.greeting}>Spike</Text>
+          <Text style={styles.subtitle}>{greeting}</Text>
         </View>
         <View style={styles.headerRight}>
-          <View style={styles.vnlBadge}>
-            <Ionicons name="trophy" size={14} color={C.accent} />
-            <Text style={styles.vnlText}>VNL</Text>
-          </View>
-          <ProfileBadge onPress={handleProfilePress} />
+          {liveCount > 0 && (
+            <View style={styles.liveBadge}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveBadgeText}>{liveCount} LIVE</Text>
+            </View>
+          )}
+          <ProfileBadge onPress={resetOnboarding} />
         </View>
       </View>
 
       {preferences.contentInterests.length > 0 && (
-        <QuickAccessBar interests={preferences.contentInterests} />
-      )}
-
-      {liveMatch &&
-        (preferences.contentInterests.length === 0 ||
-          preferences.contentInterests.includes("live_scores")) && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.livePulse} />
-              <Text style={styles.sectionTitle}>Live Now</Text>
-            </View>
-            <MatchCard match={liveMatch} />
-          </View>
-        )}
-
-      {favoriteTeams.length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="star" size={14} color={C.accent} />
-            <Text style={styles.sectionTitle}>Your Teams</Text>
-          </View>
-          {favoriteTeams.map((team) => (
-            <View key={team.id} style={styles.favTeamChip}>
-              <Text style={styles.favTeamName}>{team.name}</Text>
-              <View style={styles.favTeamStats}>
-                <Text style={styles.favStat}>{team.wins}W</Text>
-                <Text style={styles.favStatSep}>·</Text>
-                <Text style={styles.favStat}>{team.losses}L</Text>
-                <View style={styles.favPoints}>
-                  <Text style={styles.favPointsText}>{team.points} pts</Text>
-                </View>
-              </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.interestBar} contentContainerStyle={styles.interestBarContent}>
+          {preferences.contentInterests.map((interest) => (
+            <View key={interest} style={styles.interestChip}>
+              <Ionicons name={INTEREST_ICONS[interest] as any} size={12} color={C.accent} />
+              <Text style={styles.interestChipText}>{INTEREST_LABELS[interest]}</Text>
             </View>
           ))}
-        </View>
+        </ScrollView>
+      )}
+
+      {activeDisciplines.length > 1 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.discFilterBar} contentContainerStyle={styles.discFilterContent}>
+          <Pressable
+            style={[styles.discPill, activeFilter === "all" && styles.discPillAll]}
+            onPress={() => setActiveFilter("all")}
+          >
+            <Text style={[styles.discPillText, activeFilter === "all" && { color: "#fff" }]}>All</Text>
+          </Pressable>
+          {activeDisciplines.map((d) => (
+            <DisciplinePill key={d} disc={d} active={activeFilter === d} onPress={() => setActiveFilter(d === activeFilter ? "all" : d)} />
+          ))}
+        </ScrollView>
       )}
 
       {showTrainingTips && (
@@ -216,38 +237,11 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {upcomingMatches.length > 0 &&
-        (preferences.contentInterests.length === 0 ||
-          preferences.contentInterests.includes("live_scores") ||
-          preferences.contentInterests.includes("match_results")) && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="calendar-outline" size={14} color={C.accent} />
-              <Text style={styles.sectionTitle}>Upcoming</Text>
-            </View>
-            {upcomingMatches.slice(0, 3).map((m) => (
-              <MatchCard key={m.id} match={m} />
-            ))}
-          </View>
-        )}
-
-      {recentMatches.length > 0 &&
-        (preferences.contentInterests.length === 0 ||
-          preferences.contentInterests.includes("match_results")) && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={14}
-                color={C.textSecondary}
-              />
-              <Text style={styles.sectionTitle}>Recent Results</Text>
-            </View>
-            {recentMatches.slice(0, 2).map((m) => (
-              <MatchCard key={m.id} match={m} />
-            ))}
-          </View>
-        )}
+      <View style={styles.section}>
+        {displayDisciplines.map((disc) => (
+          <DisciplineSection key={disc} disc={disc} favoriteTeamIds={favoriteTeamIds} />
+        ))}
+      </View>
 
       {showOlympics && (
         <View style={styles.section}>
@@ -256,290 +250,98 @@ export default function HomeScreen() {
             <Text style={styles.sectionTitle}>LA28 Olympics</Text>
           </View>
           <View style={styles.olympicsCard}>
-            <Text style={styles.olympicsTitle}>Los Angeles 2028</Text>
-            <Text style={styles.olympicsBody}>
-              Volleyball at the LA28 Olympics runs July 26 – August 10, 2028.
-              The USA Men's and Women's teams are among the favorites.
-            </Text>
-            <View style={styles.olympicsTag}>
-              <Text style={styles.olympicsTagText}>1Y 117D to go</Text>
+            <View style={styles.olympicsRow}>
+              <View style={styles.olympicsTextBlock}>
+                <Text style={styles.olympicsTitle}>Los Angeles 2028</Text>
+                <Text style={styles.olympicsBody}>
+                  Volleyball, Beach Volleyball, and Sitting Volleyball all featured at LA28. The USA Men's and Women's squads are among the gold medal favorites.
+                </Text>
+              </View>
+              <View style={styles.olympicsCountdown}>
+                <Text style={styles.olympicsCountdownNumber}>2</Text>
+                <Text style={styles.olympicsCountdownLabel}>Years Away</Text>
+              </View>
+            </View>
+            <View style={styles.olympicsTagRow}>
+              <View style={styles.olympicsTag}><Text style={styles.olympicsTagText}>Men's VB</Text></View>
+              <View style={styles.olympicsTag}><Text style={styles.olympicsTagText}>Women's VB</Text></View>
+              <View style={styles.olympicsTag}><Text style={styles.olympicsTagText}>Beach VB</Text></View>
+              <View style={styles.olympicsTag}><Text style={styles.olympicsTagText}>Sitting VB</Text></View>
             </View>
           </View>
         </View>
       )}
 
-      {news && news.length > 0 &&
-        (preferences.contentInterests.length === 0 ||
-          preferences.contentInterests.includes("team_news")) && (
+      {allNews.length > 0 &&
+        (preferences.contentInterests.length === 0 || preferences.contentInterests.includes("team_news")) && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="newspaper-outline" size={14} color={C.accent} />
               <Text style={styles.sectionTitle}>Latest News</Text>
             </View>
-            <NewsCard item={news[0]} featured />
-            {news.slice(1, 3).map((n) => (
-              <NewsCard key={n.id} item={n} />
-            ))}
+            <NewsCard item={allNews[0]} featured />
+            {allNews.slice(1, 4).map((n) => <NewsCard key={n.id} item={n} />)}
           </View>
         )}
     </ScrollView>
   );
 }
 
-const TRAINING_TIPS = [
-  {
-    id: "1",
-    icon: "repeat",
-    title: "Serve Consistency",
-    body: "Focus on tossing the ball to the same spot every time. Consistency in your toss leads to consistent serves.",
-  },
-  {
-    id: "2",
-    icon: "trending-up",
-    title: "Vertical Jump Training",
-    body: "Box jumps and depth jumps 3x/week can add 2-4 inches to your vertical in 8 weeks.",
-  },
-];
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: C.primary,
-  },
-  headerGradient: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 250,
-  },
-  content: {
-    paddingHorizontal: 16,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  greeting: {
-    fontSize: 28,
-    color: C.text,
-    fontFamily: "Inter_700Bold",
-  },
-  subtitle: {
-    fontSize: 13,
-    color: C.textSecondary,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
-  },
-  vnlBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(191,13,62,0.15)",
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 5,
-    borderWidth: 1,
-    borderColor: "rgba(191,13,62,0.35)",
-  },
-  vnlText: {
-    fontSize: 13,
-    color: C.accent,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 1,
-  },
-  profileBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  profileAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "rgba(191,13,62,0.2)",
-    borderWidth: 1.5,
-    borderColor: "rgba(191,13,62,0.4)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  profileInitials: {
-    fontSize: 13,
-    color: C.accent,
-    fontFamily: "Inter_700Bold",
-  },
-  rolePill: {
-    backgroundColor: "rgba(255,255,255,0.07)",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  roleText: {
-    fontSize: 11,
-    color: C.textSecondary,
-    fontFamily: "Inter_500Medium",
-  },
-  quickBar: {
-    marginBottom: 20,
-    marginHorizontal: -16,
-  },
-  quickBarContent: {
-    paddingHorizontal: 16,
-    gap: 8,
-    flexDirection: "row",
-  },
-  quickChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: "rgba(191,13,62,0.1)",
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: "rgba(191,13,62,0.2)",
-  },
-  quickChipText: {
-    fontSize: 12,
-    color: C.accent,
-    fontFamily: "Inter_500Medium",
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    color: C.textSecondary,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  livePulse: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#E84855",
-  },
-  favTeamChip: {
-    backgroundColor: C.cardBg,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: C.separator,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  favTeamName: {
-    fontSize: 15,
-    color: C.text,
-    fontFamily: "Inter_600SemiBold",
-  },
-  favTeamStats: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  favStat: {
-    fontSize: 13,
-    color: C.textSecondary,
-    fontFamily: "Inter_500Medium",
-  },
-  favStatSep: {
-    color: C.textMuted,
-  },
-  favPoints: {
-    backgroundColor: "rgba(245,166,35,0.15)",
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  favPointsText: {
-    fontSize: 12,
-    color: C.accent,
-    fontFamily: "Inter_600SemiBold",
-  },
-  tipCard: {
-    flexDirection: "row",
-    backgroundColor: C.cardBg,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: C.separator,
-    gap: 12,
-    alignItems: "flex-start",
-  },
-  tipIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "rgba(191,13,62,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  tipText: {
-    flex: 1,
-    gap: 3,
-  },
-  tipTitle: {
-    fontSize: 14,
-    color: C.text,
-    fontFamily: "Inter_600SemiBold",
-  },
-  tipBody: {
-    fontSize: 13,
-    color: C.textSecondary,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 19,
-  },
-  olympicsCard: {
-    backgroundColor: "rgba(245,166,35,0.06)",
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "rgba(245,166,35,0.2)",
-    gap: 8,
-  },
-  olympicsTitle: {
-    fontSize: 16,
-    color: C.text,
-    fontFamily: "Inter_700Bold",
-  },
-  olympicsBody: {
-    fontSize: 13,
-    color: C.textSecondary,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 19,
-  },
-  olympicsTag: {
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(245,166,35,0.15)",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  olympicsTagText: {
-    fontSize: 12,
-    color: "#F5A623",
-    fontFamily: "Inter_600SemiBold",
-  },
+  container: { flex: 1, backgroundColor: C.primary },
+  headerGradient: { position: "absolute", top: 0, left: 0, right: 0, height: 250 },
+  content: { paddingHorizontal: 16 },
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  headerLeft: { flex: 1 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
+  greeting: { fontSize: 28, color: C.text, fontFamily: "Inter_700Bold" },
+  subtitle: { fontSize: 13, color: C.textSecondary, fontFamily: "Inter_400Regular", marginTop: 2 },
+  liveBadge: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(232,72,85,0.15)", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, gap: 5, borderWidth: 1, borderColor: "rgba(232,72,85,0.35)" },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#E84855" },
+  liveText: { fontSize: 11, color: "#E84855", fontFamily: "Inter_700Bold", letterSpacing: 0.5 },
+  liveBadgeText: { fontSize: 11, color: "#E84855", fontFamily: "Inter_700Bold", letterSpacing: 0.5 },
+  profileBadge: { flexDirection: "row", alignItems: "center", gap: 6 },
+  profileAvatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(191,13,62,0.2)", borderWidth: 1.5, borderColor: "rgba(191,13,62,0.4)", alignItems: "center", justifyContent: "center" },
+  profileInitials: { fontSize: 13, color: C.accent, fontFamily: "Inter_700Bold" },
+  rolePill: { backgroundColor: "rgba(255,255,255,0.07)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
+  roleText: { fontSize: 11, color: C.textSecondary, fontFamily: "Inter_500Medium" },
+  interestBar: { marginBottom: 14, marginHorizontal: -16 },
+  interestBarContent: { paddingHorizontal: 16, gap: 8, flexDirection: "row" },
+  interestChip: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(191,13,62,0.1)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: "rgba(191,13,62,0.2)" },
+  interestChipText: { fontSize: 12, color: C.accent, fontFamily: "Inter_500Medium" },
+  discFilterBar: { marginBottom: 20, marginHorizontal: -16 },
+  discFilterContent: { paddingHorizontal: 16, gap: 8 },
+  discPill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 13, paddingVertical: 7, borderRadius: 20, backgroundColor: C.cardBg, borderWidth: 1, borderColor: C.separator },
+  discPillAll: { backgroundColor: C.accent, borderColor: C.accent },
+  discPillText: { fontSize: 12, color: C.textSecondary, fontFamily: "Inter_600SemiBold" },
+  section: { marginBottom: 8 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 12 },
+  sectionTitle: { fontSize: 13, color: C.textSecondary, fontFamily: "Inter_600SemiBold", letterSpacing: 0.5, textTransform: "uppercase" },
+  disciplineSection: { marginBottom: 24 },
+  disciplineSectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 12 },
+  disciplineSectionLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  disciplineSectionIcon: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  disciplineSectionLabel: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  disciplineSectionTournament: { fontSize: 11, color: C.textMuted, fontFamily: "Inter_400Regular", marginTop: 1 },
+  liveIndicator: { flexDirection: "row", alignItems: "center", gap: 5 },
+  favTeamsRow: { flexDirection: "row", gap: 8, marginBottom: 10, flexWrap: "wrap" },
+  miniTeamChip: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: C.cardBg, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: C.separator },
+  miniTeamName: { fontSize: 12, color: C.text, fontFamily: "Inter_600SemiBold" },
+  miniTeamRecord: { fontSize: 11, color: C.textMuted, fontFamily: "Inter_400Regular" },
+  tipCard: { flexDirection: "row", backgroundColor: C.cardBg, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: C.separator, gap: 12, alignItems: "flex-start" },
+  tipIconWrap: { width: 36, height: 36, borderRadius: 10, backgroundColor: "rgba(191,13,62,0.12)", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  tipText: { flex: 1, gap: 3 },
+  tipTitle: { fontSize: 14, color: C.text, fontFamily: "Inter_600SemiBold" },
+  tipBody: { fontSize: 13, color: C.textSecondary, fontFamily: "Inter_400Regular", lineHeight: 19 },
+  olympicsCard: { backgroundColor: "rgba(245,166,35,0.06)", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "rgba(245,166,35,0.2)", gap: 12 },
+  olympicsRow: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
+  olympicsTextBlock: { flex: 1, gap: 6 },
+  olympicsTitle: { fontSize: 16, color: C.text, fontFamily: "Inter_700Bold" },
+  olympicsBody: { fontSize: 13, color: C.textSecondary, fontFamily: "Inter_400Regular", lineHeight: 19 },
+  olympicsCountdown: { alignItems: "center", backgroundColor: "rgba(245,166,35,0.15)", borderRadius: 12, padding: 10, minWidth: 60 },
+  olympicsCountdownNumber: { fontSize: 24, color: "#F5A623", fontFamily: "Inter_700Bold" },
+  olympicsCountdownLabel: { fontSize: 10, color: "#F5A623", fontFamily: "Inter_500Medium", textAlign: "center", marginTop: 2 },
+  olympicsTagRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
+  olympicsTag: { backgroundColor: "rgba(245,166,35,0.15)", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  olympicsTagText: { fontSize: 11, color: "#F5A623", fontFamily: "Inter_600SemiBold" },
 });
