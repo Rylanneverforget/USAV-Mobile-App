@@ -60,6 +60,28 @@ Spike covers the full volleyball universe across 6 disciplines:
 
 Data lives in `constants/data.ts`. Each `Team`, `Match`, `Player`, and `NewsItem` has a `discipline` field.
 
+## Planned: Data Warehouse Integration (ETA: end of April 2026)
+
+**Current state:** All data is static dummy data in `constants/data.ts` — structured to match what real warehouse tables will look like.
+
+**When the warehouse is ready, the swap requires:**
+
+1. **Add the warehouse driver** to `artifacts/api-server` (package depends on warehouse type — Snowflake, BigQuery, Databricks, Redshift, Postgres, or REST API — ask user which one).
+2. **Store credentials** as Replit secrets (connection string / account URL / API key depending on warehouse type).
+3. **Add API routes** to `artifacts/api-server/src/routes/`:
+   - `GET /api/matches?discipline=mens` → queries results table
+   - `GET /api/standings?discipline=ncaa_womens` → queries standings table
+   - `GET /api/players?discipline=womens` → queries player stats table
+   - `GET /api/news?discipline=beach` → queries articles/news table
+4. **Replace static imports** in the mobile app — swap `import { MATCHES } from "@/constants/data"` with `useQuery` calls against the API server. The `AppContext.tsx` is the right place to centralize these fetches.
+5. **Add a cache layer** (optional) — the Replit PostgreSQL can store a synced snapshot so the app stays fast even if the warehouse has latency. Use a background job / cron to refresh every N minutes.
+
+**Dummy data shape to match in warehouse queries:**
+- `teams`: id, name, shortName, country, wins, losses, setsWon, setsLost, points, form (array), discipline, conference?
+- `matches`: id, homeTeam, awayTeam, homeScore, awayScore, status (live/upcoming/finished), date, time, tournament, discipline, sets?
+- `players`: id, name, position, team, country, number, discipline, stats (points, aces, blocks, digs, attacks)
+- `news`: id, title, summary, category, date, readTime, discipline
+
 ## Onboarding Flow (Mobile)
 
 A multi-step onboarding wizard runs after the user signs in for the first time:
