@@ -264,6 +264,165 @@ export const OLYMPIC_PATHS: OlympicQualPath[] = [
   { id: "q4", name: "Olympic Qualification Tournaments", spots: 3, description: "Three OQT events held globally, each awarding one Olympic berth to the tournament winner.", deadline: "Sep 2027", teamsQualified: [], isComplete: false },
 ];
 
+// ─── JUNIOR CLUB VOLLEYBALL ───────────────────────────────────────────────────
+
+export type JuniorClubRole = "junior_player" | "parent" | "club_coach";
+
+export type JuniorClub = {
+  id: string;
+  name: string;
+  region: string;
+  city: string;
+  state: string;
+  code: string;
+  ageGroups: string[];
+};
+
+export type ClubTournament = {
+  id: string;
+  name: string;
+  shortName: string;
+  date: string;
+  endDate?: string;
+  location: string;
+  venue: string;
+  division: string;
+  status: "registered" | "qualified" | "upcoming" | "completed";
+  isUSAVSanctioned: boolean;
+  usavEventCode?: string;
+  pointsEarned?: number;
+  pointsPossible?: number;
+  teamResult?: string;
+};
+
+export type ClubTicket = {
+  id: string;
+  eventName: string;
+  shortName: string;
+  date: string;
+  venue: string;
+  city: string;
+  ticketStatus: "purchased" | "available" | "soldout";
+  price: string;
+  section?: string;
+  category: "national_championship" | "regional_qualifier" | "all_star" | "pro_match" | "college_match";
+  discipline: Discipline;
+};
+
+export const JUNIOR_CLUBS: JuniorClub[] = [
+  { id: "jc1", name: "Mizuno Long Beach", code: "MLB", region: "Southern California",  city: "Long Beach",  state: "CA", ageGroups: ["12U","13U","14U","15U","16U","17U","18U"] },
+  { id: "jc2", name: "Skyline Chicago",   code: "SKY", region: "Great Lakes",           city: "Chicago",     state: "IL", ageGroups: ["13U","14U","15U","16U","17U","18U"] },
+  { id: "jc3", name: "Lone Star Elite",   code: "LSE", region: "Texas",                 city: "Dallas",      state: "TX", ageGroups: ["12U","14U","15U","16U","17U","18U"] },
+  { id: "jc4", name: "A5 Georgia",        code: "A5",  region: "Southeast",             city: "Atlanta",     state: "GA", ageGroups: ["13U","14U","15U","16U","17U","18U"] },
+  { id: "jc5", name: "Serve City",        code: "SCV", region: "Midwest",               city: "Columbus",    state: "OH", ageGroups: ["12U","13U","14U","15U","16U","17U","18U"] },
+  { id: "jc6", name: "NorCal Volleyball", code: "NCV", region: "Northern California",   city: "San Jose",    state: "CA", ageGroups: ["13U","14U","15U","16U","17U","18U"] },
+  { id: "jc7", name: "Empire State VBC",  code: "ESV", region: "New York Metro",        city: "New York",    state: "NY", ageGroups: ["14U","15U","16U","17U","18U"] },
+  { id: "jc8", name: "Rocky Mountain VB", code: "RMV", region: "Rocky Mountain",        city: "Denver",      state: "CO", ageGroups: ["12U","13U","14U","15U","16U","17U","18U"] },
+];
+
+export const AGE_GROUPS = ["12U", "13U", "14U", "15U", "16U", "17U", "18U"];
+
+export const CLUB_TOURNAMENTS: ClubTournament[] = [
+  {
+    id: "ct1",
+    name: "USA Volleyball Girls Junior National Championships",
+    shortName: "Girls JNCs",
+    date: "Jun 26, 2026",
+    endDate: "Jul 5, 2026",
+    location: "Indianapolis, IN",
+    venue: "Indiana Convention Center",
+    division: "18 Open",
+    status: "qualified",
+    isUSAVSanctioned: true,
+    usavEventCode: "26GJNC",
+    pointsEarned: 820,
+    pointsPossible: 1000,
+    teamResult: "Pool A – 2nd",
+  },
+  {
+    id: "ct2",
+    name: "USA Volleyball Boys Junior National Championships",
+    shortName: "Boys JNCs",
+    date: "Jul 9, 2026",
+    endDate: "Jul 14, 2026",
+    location: "Minneapolis, MN",
+    venue: "Minneapolis Convention Center",
+    division: "18 USA",
+    status: "upcoming",
+    isUSAVSanctioned: true,
+    usavEventCode: "26BJNC",
+  },
+  {
+    id: "ct3",
+    name: "USAV Great Lakes Regional Qualifier",
+    shortName: "GL Qualifier",
+    date: "Mar 8, 2026",
+    endDate: "Mar 9, 2026",
+    location: "Chicago, IL",
+    venue: "Odeum Expo Center",
+    division: "16 Open",
+    status: "completed",
+    isUSAVSanctioned: true,
+    usavEventCode: "26GLRQ",
+    pointsEarned: 400,
+    pointsPossible: 400,
+    teamResult: "1st Place",
+  },
+  {
+    id: "ct4",
+    name: "USAV Southeast Qualifier – Stop 2",
+    shortName: "SE Qualifier S2",
+    date: "Apr 12, 2026",
+    endDate: "Apr 13, 2026",
+    location: "Atlanta, GA",
+    venue: "Georgia World Congress Center",
+    division: "17 National",
+    status: "registered",
+    isUSAVSanctioned: true,
+    usavEventCode: "26SEQS2",
+  },
+];
+
+export const CLUB_TICKETS: ClubTicket[] = [
+  {
+    id: "tk1",
+    eventName: "USA Volleyball Girls Junior National Championships – Session 1",
+    shortName: "Girls JNCs – Session 1",
+    date: "Jun 26, 2026",
+    venue: "Indiana Convention Center",
+    city: "Indianapolis, IN",
+    ticketStatus: "purchased",
+    price: "$25",
+    section: "Section 114, Row C",
+    category: "national_championship",
+    discipline: "womens",
+  },
+  {
+    id: "tk2",
+    eventName: "VNL 2026 Women's Finals",
+    shortName: "VNL Women's Finals",
+    date: "Jul 19, 2026",
+    venue: "Ball Arena",
+    city: "Denver, CO",
+    ticketStatus: "available",
+    price: "$42",
+    category: "pro_match",
+    discipline: "womens",
+  },
+  {
+    id: "tk3",
+    eventName: "NCAA Women's Volleyball Championship",
+    shortName: "NCAA Championship",
+    date: "Dec 18, 2026",
+    venue: "KFC Yum! Center",
+    city: "Louisville, KY",
+    ticketStatus: "available",
+    price: "$35",
+    category: "college_match",
+    discipline: "ncaa_womens",
+  },
+];
+
 // ─── NEWS ─────────────────────────────────────────────────────────────────────
 export const NEWS: NewsItem[] = [
   { id: "n1", title: "Team USA Men Lead VNL Pool With Six Straight Wins", summary: "The US Men's National Team is on fire this VNL season, dominating Pool A and setting up a thrilling semifinal run.", category: "VNL 2026", date: "2 hours ago", readTime: 3, discipline: "mens" },

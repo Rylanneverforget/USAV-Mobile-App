@@ -16,11 +16,19 @@ import {
   type Player,
   type Team,
   type Discipline,
+  type JuniorClubRole,
 } from "@/constants/data";
 
 export type VolleyballRole = "fan" | "player" | "coach" | "referee" | "media";
 export type ExperienceLevel = "recreational" | "club" | "collegiate" | "professional";
 export type ContentInterest = "live_scores" | "match_results" | "player_stats" | "team_news" | "training_tips" | "olympics";
+
+export type JuniorClubPrefs = {
+  role: JuniorClubRole;
+  clubId: string;
+  clubName: string;
+  ageGroup: string;
+};
 
 export type UserPreferences = {
   role: VolleyballRole | null;
@@ -28,6 +36,7 @@ export type UserPreferences = {
   favoriteTeams: string[];
   contentInterests: ContentInterest[];
   disciplines: Discipline[];
+  juniorClub: JuniorClubPrefs | null;
 };
 
 type AppContextType = {
@@ -54,6 +63,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   favoriteTeams: [],
   contentInterests: [],
   disciplines: ["mens"],
+  juniorClub: null,
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -72,7 +82,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (data === "true") setIsOnboarded(true);
     });
     AsyncStorage.getItem("user_preferences").then((data) => {
-      if (data) setPreferences(JSON.parse(data));
+      if (data) setPreferences({ ...DEFAULT_PREFERENCES, ...JSON.parse(data) });
     });
   }, []);
 

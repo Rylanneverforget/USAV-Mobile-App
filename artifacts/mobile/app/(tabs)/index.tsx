@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MatchCard from "@/components/MatchCard";
 import NewsCard from "@/components/NewsCard";
+import JuniorClubSection from "@/components/JuniorClubSection";
 import Colors from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useAuth } from "@/lib/auth";
@@ -306,6 +307,19 @@ export default function HomeScreen() {
         <Text style={styles.usavBarText}>Powered by USA Volleyball</Text>
       </View>
 
+      {preferences.juniorClub && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <NetCourtIcon size={16} color={C.accent} />
+            <Text style={styles.sectionTitle}>My Club Hub</Text>
+            <View style={styles.juniorBadge}>
+              <Text style={styles.juniorBadgeText}>Junior Club</Text>
+            </View>
+          </View>
+          <JuniorClubSection juniorClub={preferences.juniorClub} />
+        </View>
+      )}
+
       {preferences.contentInterests.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.interestBar} contentContainerStyle={styles.interestBarContent}>
           {preferences.contentInterests.map((interest) => {
@@ -425,6 +439,8 @@ const styles = StyleSheet.create({
   profileInitials: { fontSize: 13, color: C.accent, fontFamily: "Inter_700Bold" },
   rolePill: { backgroundColor: "rgba(255,255,255,0.07)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
   roleText: { fontSize: 11, color: C.textSecondary, fontFamily: "Inter_500Medium" },
+  juniorBadge: { backgroundColor: "rgba(58,123,245,0.12)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: "rgba(58,123,245,0.25)", marginLeft: 6 },
+  juniorBadgeText: { fontSize: 11, color: "#3A7BF5", fontFamily: "Inter_600SemiBold" },
   interestBar: { marginBottom: 14, marginHorizontal: -16 },
   interestBarContent: { paddingHorizontal: 16, gap: 8, flexDirection: "row" },
   interestChip: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(191,13,62,0.1)", borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: "rgba(191,13,62,0.2)" },

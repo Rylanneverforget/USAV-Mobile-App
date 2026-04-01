@@ -13,8 +13,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Colors from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
-import { ALL_TEAMS, type Discipline } from "@/constants/data";
-import type { VolleyballRole, ExperienceLevel, ContentInterest, UserPreferences } from "@/context/AppContext";
+import { ALL_TEAMS, JUNIOR_CLUBS, AGE_GROUPS, type Discipline } from "@/constants/data";
+import type { JuniorClubRole } from "@/constants/data";
+import type { VolleyballRole, ExperienceLevel, ContentInterest, UserPreferences, JuniorClubPrefs } from "@/context/AppContext";
 import {
   VolleyballSvg,
   SpikeIcon,
@@ -37,13 +38,21 @@ type RoleOption = { id: VolleyballRole; label: string; description: string; SvgI
 type LevelOption = { id: ExperienceLevel; label: string; description: string; SvgIcon: SvgIconComponent };
 type InterestOption = { id: ContentInterest; label: string; SvgIcon: SvgIconComponent };
 type DisciplineOption = { id: Discipline; label: string; description: string; SvgIcon: SvgIconComponent; color: string };
+type JuniorRoleOption = { id: JuniorClubRole | "skip"; label: string; description: string; icon: string };
 
 const ROLES: RoleOption[] = [
-  { id: "fan", label: "Fan", description: "I love watching volleyball", SvgIcon: VolleyballSvg },
-  { id: "player", label: "Player", description: "I play volleyball", SvgIcon: SpikeIcon },
-  { id: "coach", label: "Coach", description: "I coach a team", SvgIcon: NetCourtIcon },
-  { id: "referee", label: "Referee", description: "I officiate matches", icon: "flag" },
-  { id: "media", label: "Media", description: "I cover volleyball", icon: "mic" },
+  { id: "fan",     label: "Fan",      description: "I love watching volleyball", SvgIcon: VolleyballSvg },
+  { id: "player",  label: "Player",   description: "I play volleyball",          SvgIcon: SpikeIcon },
+  { id: "coach",   label: "Coach",    description: "I coach a team",             SvgIcon: NetCourtIcon },
+  { id: "referee", label: "Referee",  description: "I officiate matches",        icon: "flag" },
+  { id: "media",   label: "Media",    description: "I cover volleyball",         icon: "mic" },
+];
+
+const JUNIOR_ROLES: JuniorRoleOption[] = [
+  { id: "junior_player", label: "Junior Player",     description: "I compete at the club level", icon: "body" },
+  { id: "parent",        label: "Parent / Guardian", description: "Supporting a junior player",  icon: "people" },
+  { id: "club_coach",    label: "Club Coach",        description: "I coach a junior club team",  icon: "school" },
+  { id: "skip",          label: "Not Affiliated",    description: "Skip this section",           icon: "arrow-forward-circle" },
 ];
 
 const LEVELS: LevelOption[] = [
@@ -71,7 +80,7 @@ const INTERESTS: InterestOption[] = [
   { id: "olympics",       label: "Olympics",      SvgIcon: OlympicsIcon },
 ];
 
-const STEPS = ["role", "discipline", "level", "teams", "interests"] as const;
+const STEPS = ["role", "discipline", "level", "junior", "teams", "interests"] as const;
 type Step = typeof STEPS[number];
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
@@ -110,8 +119,13 @@ export default function OnboardingScreen() {
   const [role, setRole] = useState<VolleyballRole | null>(null);
   const [disciplines, setDisciplines] = useState<Discipline[]>(["mens"]);
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | null>(null);
-  const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
   const [contentInterests, setContentInterests] = useState<ContentInterest[]>([]);
+  const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
+
+  // Junior club state
+  const [juniorRole, setJuniorRole] = useState<JuniorClubRole | "skip" | null>(null);
+  const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string | null>(null);
 
   const step = STEPS[stepIndex];
   const showLevelStep = role === "player" || role === "coach";
@@ -123,10 +137,18 @@ export default function OnboardingScreen() {
   const visibleIndex = visibleSteps.indexOf(step);
   const totalSteps = visibleSteps.length;
 
+  const isJuniorAffiliated = juniorRole !== null && juniorRole !== "skip";
+  const selectedClub = JUNIOR_CLUBS.find((c) => c.id === selectedClubId);
+
   const canAdvance = () => {
     if (step === "role") return role !== null;
     if (step === "discipline") return disciplines.length > 0;
     if (step === "level") return experienceLevel !== null;
+    if (step === "junior") {
+      if (juniorRole === null) return false;
+      if (juniorRole === "skip") return true;
+      return selectedClubId !== null && selectedAgeGroup !== null;
+    }
     if (step === "teams") return true;
     if (step === "interests") return contentInterests.length > 0;
     return false;
@@ -154,12 +176,23 @@ export default function OnboardingScreen() {
   };
 
   const finish = async () => {
+    let juniorClub: JuniorClubPrefs | null = null;
+    if (isJuniorAffiliated && selectedClub && selectedAgeGroup) {
+      juniorClub = {
+        role: juniorRole as JuniorClubRole,
+        clubId: selectedClub.id,
+        clubName: selectedClub.name,
+        ageGroup: selectedAgeGroup,
+      };
+    }
+
     const prefs: UserPreferences = {
       role,
       disciplines,
       experienceLevel: showLevelStep ? experienceLevel : null,
       favoriteTeams,
       contentInterests,
+      juniorClub,
     };
     await completeOnboarding(prefs);
     router.replace("/(tabs)");
@@ -175,6 +208,14 @@ export default function OnboardingScreen() {
 
   const toggleInterest = (id: ContentInterest) => {
     setContentInterests((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
+  };
+
+  const handleJuniorRoleSelect = (id: JuniorClubRole | "skip") => {
+    setJuniorRole(id);
+    if (id === "skip") {
+      setSelectedClubId(null);
+      setSelectedAgeGroup(null);
+    }
   };
 
   const availableTeams = disciplines.length > 0
@@ -280,6 +321,87 @@ export default function OnboardingScreen() {
                   );
                 })}
               </View>
+            </View>
+          )}
+
+          {step === "junior" && (
+            <View style={styles.stepContent}>
+              <View style={styles.stepSvgHeader}>
+                <View style={styles.juniorStepIcon}>
+                  <NetCourtIcon size={28} color={C.accent} />
+                </View>
+              </View>
+              <Text style={styles.stepTitle}>Junior Club Volleyball</Text>
+              <Text style={styles.stepSubtitle}>Are you part of the USA Volleyball junior club community? This unlocks your club hub — tournaments, tickets, and team info.</Text>
+
+              {/* Role selection */}
+              <View style={styles.optionList}>
+                {JUNIOR_ROLES.map((jr) => {
+                  const isSelected = juniorRole === jr.id;
+                  const isSkip = jr.id === "skip";
+                  return (
+                    <SelectionCard key={jr.id} selected={isSelected} onPress={() => handleJuniorRoleSelect(jr.id)}>
+                      <View style={styles.roleCardInner}>
+                        <View style={[styles.roleIcon, isSelected && !isSkip && styles.roleIconSelected, isSkip && styles.roleIconSkip]}>
+                          <Ionicons name={jr.icon as any} size={22} color={isSelected ? (isSkip ? C.textMuted : C.accent) : C.textSecondary} />
+                        </View>
+                        <View style={styles.roleText}>
+                          <Text style={[styles.roleLabel, isSelected && !isSkip && styles.roleLabelSelected, isSkip && styles.roleLabelSkip]}>{jr.label}</Text>
+                          <Text style={styles.roleDescription}>{jr.description}</Text>
+                        </View>
+                      </View>
+                    </SelectionCard>
+                  );
+                })}
+              </View>
+
+              {/* Club + Age Group picker — visible when affiliated role is selected */}
+              {isJuniorAffiliated && (
+                <View style={styles.clubPickerSection}>
+                  <View style={styles.clubPickerDivider} />
+
+                  <Text style={styles.clubPickerLabel}>Select your club</Text>
+                  <View style={styles.clubGrid}>
+                    {JUNIOR_CLUBS.map((club) => {
+                      const isSelected = selectedClubId === club.id;
+                      return (
+                        <Pressable
+                          key={club.id}
+                          style={[styles.clubChip, isSelected && styles.clubChipSelected]}
+                          onPress={() => setSelectedClubId(club.id)}
+                        >
+                          <Text style={[styles.clubChipCode, isSelected && styles.clubChipCodeSelected]}>{club.code}</Text>
+                          <Text style={[styles.clubChipName, isSelected && styles.clubChipNameSelected]} numberOfLines={2}>{club.name}</Text>
+                          <Text style={styles.clubChipState}>{club.city}, {club.state}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  <Text style={[styles.clubPickerLabel, { marginTop: 20 }]}>Age group / division</Text>
+                  <View style={styles.ageGroupRow}>
+                    {(selectedClub?.ageGroups ?? AGE_GROUPS).map((ag) => {
+                      const isSelected = selectedAgeGroup === ag;
+                      return (
+                        <Pressable
+                          key={ag}
+                          style={[styles.ageChip, isSelected && styles.ageChipSelected]}
+                          onPress={() => setSelectedAgeGroup(ag)}
+                        >
+                          <Text style={[styles.ageChipText, isSelected && styles.ageChipTextSelected]}>{ag}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  {selectedClubId && selectedAgeGroup && (
+                    <View style={styles.clubConfirmBadge}>
+                      <Ionicons name="checkmark-circle" size={16} color="#44C98E" />
+                      <Text style={styles.clubConfirmText}>{selectedClub?.name}  ·  {selectedAgeGroup}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           )}
 
@@ -416,22 +538,64 @@ const styles = StyleSheet.create({
   roleCardInner: { flexDirection: "row", alignItems: "center", gap: 14 },
   roleIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center" },
   roleIconSelected: { backgroundColor: "rgba(191,13,62,0.25)" },
+  roleIconSkip: { backgroundColor: "rgba(255,255,255,0.04)" },
   disciplineIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   disciplineCheck: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
   roleText: { flex: 1, gap: 2 },
   roleLabel: { fontSize: 16, color: "rgba(255,255,255,0.7)", fontFamily: "Inter_600SemiBold" },
   roleLabelSelected: { color: "#fff" },
+  roleLabelSkip: { color: "rgba(255,255,255,0.4)" },
   roleDescription: { fontSize: 13, color: "rgba(255,255,255,0.35)", fontFamily: "Inter_400Regular" },
+
+  /* Junior Club step — club picker */
+  juniorStepIcon: {
+    width: 60, height: 60, borderRadius: 16,
+    backgroundColor: "rgba(191,13,62,0.12)",
+    borderWidth: 1.5, borderColor: "rgba(191,13,62,0.3)",
+    alignItems: "center", justifyContent: "center",
+  },
+  clubPickerSection: { marginTop: 24, gap: 10 },
+  clubPickerDivider: { height: 1, backgroundColor: "rgba(255,255,255,0.07)", marginBottom: 8 },
+  clubPickerLabel: { fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "Inter_600SemiBold", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 },
+  clubGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  clubChip: {
+    width: "47%", backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 14,
+    borderWidth: 1.5, borderColor: "rgba(255,255,255,0.08)", padding: 12, gap: 3,
+  },
+  clubChipSelected: { backgroundColor: "rgba(58,123,245,0.15)", borderColor: "rgba(58,123,245,0.5)" },
+  clubChipCode: { fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "Inter_600SemiBold", letterSpacing: 0.5 },
+  clubChipCodeSelected: { color: "#3A7BF5" },
+  clubChipName: { fontSize: 13, color: "rgba(255,255,255,0.7)", fontFamily: "Inter_600SemiBold", lineHeight: 17 },
+  clubChipNameSelected: { color: "#fff" },
+  clubChipState: { fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "Inter_400Regular" },
+  ageGroupRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  ageChip: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.08)" },
+  ageChipSelected: { backgroundColor: "rgba(191,13,62,0.2)", borderColor: "rgba(191,13,62,0.6)" },
+  ageChipText: { fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "Inter_600SemiBold" },
+  ageChipTextSelected: { color: "#fff" },
+  clubConfirmBadge: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: "rgba(68,201,142,0.1)", borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 10,
+    borderWidth: 1, borderColor: "rgba(68,201,142,0.25)", marginTop: 8,
+  },
+  clubConfirmText: { fontSize: 13, color: "#44C98E", fontFamily: "Inter_500Medium" },
+
+  /* Teams step */
   teamSection: { marginBottom: 20 },
   teamSectionLabel: { fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "Inter_600SemiBold", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 },
   teamGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   teamCardInner: { alignItems: "center", gap: 6, paddingVertical: 4, paddingHorizontal: 6, minWidth: 70 },
   teamFlag: { fontSize: 28 },
   teamName: { fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "Inter_600SemiBold", textAlign: "center" },
+
+  /* Interests step */
   interestGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   interestCardInner: { alignItems: "center", gap: 8, paddingVertical: 8, paddingHorizontal: 4, minWidth: 90 },
   interestLabel: { fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "Inter_500Medium", textAlign: "center" },
   interestLabelSelected: { color: "#fff" },
+
+  /* Footer */
   footer: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: "transparent" },
   nextButton: { backgroundColor: C.accent, borderRadius: 16, height: 56, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, shadowColor: C.accent, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 8 },
   nextButtonDisabled: { backgroundColor: "rgba(191,13,62,0.25)", shadowOpacity: 0, elevation: 0 },
