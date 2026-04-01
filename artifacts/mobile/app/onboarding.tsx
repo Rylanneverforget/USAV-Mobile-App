@@ -1,0 +1,595 @@
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import React, { useState, useRef } from "react";
+import {
+  Animated,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import Colors from "@/constants/colors";
+import { useApp } from "@/context/AppContext";
+import { TEAMS } from "@/constants/data";
+import type { VolleyballRole, ExperienceLevel, ContentInterest, UserPreferences } from "@/context/AppContext";
+
+const C = Colors.light;
+
+type RoleOption = { id: VolleyballRole; label: string; description: string; icon: string };
+type LevelOption = { id: ExperienceLevel; label: string; description: string };
+type InterestOption = { id: ContentInterest; label: string; icon: string };
+
+const ROLES: RoleOption[] = [
+  { id: "fan", label: "Fan", description: "I love watching volleyball", icon: "heart" },
+  { id: "player", label: "Player", description: "I play volleyball", icon: "basketball" },
+  { id: "coach", label: "Coach", description: "I coach a team", icon: "people" },
+  { id: "referee", label: "Referee", description: "I officiate matches", icon: "flag" },
+  { id: "media", label: "Media", description: "I cover volleyball", icon: "mic" },
+];
+
+const LEVELS: LevelOption[] = [
+  { id: "recreational", label: "Recreational", description: "Just for fun" },
+  { id: "club", label: "Club", description: "Competitive club play" },
+  { id: "collegiate", label: "Collegiate", description: "College / university level" },
+  { id: "professional", label: "Professional", description: "Elite or pro level" },
+];
+
+const INTERESTS: InterestOption[] = [
+  { id: "live_scores", label: "Live Scores", icon: "flash" },
+  { id: "match_results", label: "Match Results", icon: "trophy" },
+  { id: "player_stats", label: "Player Stats", icon: "bar-chart" },
+  { id: "team_news", label: "Team News", icon: "newspaper" },
+  { id: "training_tips", label: "Training Tips", icon: "fitness" },
+  { id: "olympics", label: "Olympics", icon: "medal" },
+];
+
+const STEPS = ["role", "level", "teams", "interests"] as const;
+type Step = typeof STEPS[number];
+
+function StepIndicator({ current, total }: { current: number; total: number }) {
+  return (
+    <View style={styles.stepIndicator}>
+      {Array.from({ length: total }).map((_, i) => (
+        <View
+          key={i}
+          style={[
+            styles.stepDot,
+            i === current && styles.stepDotActive,
+            i < current && styles.stepDotDone,
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+function SelectionCard({
+  selected,
+  onPress,
+  children,
+}: {
+  selected: boolean;
+  onPress: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.selectionCard,
+        selected && styles.selectionCardSelected,
+        pressed && styles.selectionCardPressed,
+      ]}
+    >
+      {selected && (
+        <View style={styles.checkmark}>
+          <Ionicons name="checkmark" size={12} color="#fff" />
+        </View>
+      )}
+      {children}
+    </Pressable>
+  );
+}
+
+export default function OnboardingScreen() {
+  const insets = useSafeAreaInsets();
+  const { completeOnboarding } = useApp();
+
+  const [stepIndex, setStepIndex] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  const [role, setRole] = useState<VolleyballRole | null>(null);
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | null>(null);
+  const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
+  const [contentInterests, setContentInterests] = useState<ContentInterest[]>([]);
+
+  const step = STEPS[stepIndex];
+  const isLevelStep = step === "level";
+  const showLevelStep = role === "player" || role === "coach";
+  const totalSteps = showLevelStep ? 4 : 3;
+
+  const visibleSteps = showLevelStep ? STEPS : STEPS.filter((s) => s !== "level");
+  const visibleIndex = visibleSteps.indexOf(step);
+
+  const canAdvance = () => {
+    if (step === "role") return role !== null;
+    if (step === "level") return experienceLevel !== null;
+    if (step === "teams") return true;
+    if (step === "interests") return contentInterests.length > 0;
+    return false;
+  };
+
+  const animateTransition = (fn: () => void) => {
+    Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+      fn();
+      Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+    });
+  };
+
+  const advance = () => {
+    const next = stepIndex + 1;
+    if (step === "role" && !showLevelStep) {
+      const levelIndex = STEPS.indexOf("level");
+      if (next === levelIndex) {
+        animateTransition(() => setStepIndex(next + 1));
+        return;
+      }
+    }
+    if (next >= STEPS.length) {
+      finish();
+      return;
+    }
+    animateTransition(() => setStepIndex(next));
+  };
+
+  const goBack = () => {
+    if (stepIndex === 0) return;
+    let prev = stepIndex - 1;
+    if (!showLevelStep && STEPS[prev] === "level") prev--;
+    animateTransition(() => setStepIndex(prev));
+  };
+
+  const finish = async () => {
+    const prefs: UserPreferences = {
+      role,
+      experienceLevel: showLevelStep ? experienceLevel : null,
+      favoriteTeams,
+      contentInterests,
+    };
+    await completeOnboarding(prefs);
+    router.replace("/(tabs)");
+  };
+
+  const toggleTeam = (id: string) => {
+    setFavoriteTeams((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    );
+  };
+
+  const toggleInterest = (id: ContentInterest) => {
+    setContentInterests((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <LinearGradient
+        colors={["#001240", "#001F5B", "#002080"]}
+        start={{ x: 0.3, y: 0 }}
+        end={{ x: 0.7, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <LinearGradient
+        colors={["transparent", "rgba(191,13,62,0.12)", "transparent"]}
+        start={{ x: 0, y: 0.4 }}
+        end={{ x: 1, y: 0.6 }}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <Pressable
+          onPress={goBack}
+          style={[styles.backButton, stepIndex === 0 && styles.backButtonHidden]}
+          disabled={stepIndex === 0}
+        >
+          <Ionicons name="chevron-back" size={22} color="rgba(255,255,255,0.7)" />
+        </Pressable>
+
+        <StepIndicator current={visibleIndex} total={totalSteps} />
+
+        <Pressable onPress={finish} style={styles.skipButton}>
+          <Text style={styles.skipText}>Skip</Text>
+        </Pressable>
+      </View>
+
+      <Animated.View style={[styles.body, { opacity: fadeAnim }]}>
+        <ScrollView
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 120 }]}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          {step === "role" && (
+            <View style={styles.stepContent}>
+              <Text style={styles.stepEmoji}>🏐</Text>
+              <Text style={styles.stepTitle}>How do you participate?</Text>
+              <Text style={styles.stepSubtitle}>
+                We'll personalize your experience based on your role in volleyball.
+              </Text>
+              <View style={styles.optionList}>
+                {ROLES.map((r) => (
+                  <SelectionCard key={r.id} selected={role === r.id} onPress={() => setRole(r.id)}>
+                    <View style={styles.roleCardInner}>
+                      <View style={[styles.roleIcon, role === r.id && styles.roleIconSelected]}>
+                        <Ionicons name={r.icon as any} size={22} color={role === r.id ? "#fff" : C.textSecondary} />
+                      </View>
+                      <View style={styles.roleText}>
+                        <Text style={[styles.roleLabel, role === r.id && styles.roleLabelSelected]}>
+                          {r.label}
+                        </Text>
+                        <Text style={styles.roleDescription}>{r.description}</Text>
+                      </View>
+                    </View>
+                  </SelectionCard>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {step === "level" && (
+            <View style={styles.stepContent}>
+              <Text style={styles.stepEmoji}>🎯</Text>
+              <Text style={styles.stepTitle}>What's your level?</Text>
+              <Text style={styles.stepSubtitle}>
+                Help us show you relevant drills, strategies, and content.
+              </Text>
+              <View style={styles.optionList}>
+                {LEVELS.map((l) => (
+                  <SelectionCard
+                    key={l.id}
+                    selected={experienceLevel === l.id}
+                    onPress={() => setExperienceLevel(l.id)}
+                  >
+                    <View style={styles.levelCardInner}>
+                      <Text style={[styles.levelLabel, experienceLevel === l.id && styles.roleLabelSelected]}>
+                        {l.label}
+                      </Text>
+                      <Text style={styles.roleDescription}>{l.description}</Text>
+                    </View>
+                  </SelectionCard>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {step === "teams" && (
+            <View style={styles.stepContent}>
+              <Text style={styles.stepEmoji}>⭐</Text>
+              <Text style={styles.stepTitle}>Favorite teams</Text>
+              <Text style={styles.stepSubtitle}>
+                Select any teams you want to follow. You can change this later.
+              </Text>
+              <View style={styles.teamGrid}>
+                {TEAMS.map((team) => (
+                  <SelectionCard
+                    key={team.id}
+                    selected={favoriteTeams.includes(team.id)}
+                    onPress={() => toggleTeam(team.id)}
+                  >
+                    <View style={styles.teamCardInner}>
+                      <Text style={styles.teamFlag}>{countryFlag(team.country)}</Text>
+                      <Text style={[
+                        styles.teamName,
+                        favoriteTeams.includes(team.id) && styles.roleLabelSelected,
+                      ]}>
+                        {team.shortName}
+                      </Text>
+                    </View>
+                  </SelectionCard>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {step === "interests" && (
+            <View style={styles.stepContent}>
+              <Text style={styles.stepEmoji}>📊</Text>
+              <Text style={styles.stepTitle}>What matters to you?</Text>
+              <Text style={styles.stepSubtitle}>
+                Choose the content you care about most. Pick as many as you like.
+              </Text>
+              <View style={styles.interestGrid}>
+                {INTERESTS.map((interest) => (
+                  <SelectionCard
+                    key={interest.id}
+                    selected={contentInterests.includes(interest.id)}
+                    onPress={() => toggleInterest(interest.id)}
+                  >
+                    <View style={styles.interestCardInner}>
+                      <Ionicons
+                        name={interest.icon as any}
+                        size={24}
+                        color={contentInterests.includes(interest.id) ? C.accent : C.textSecondary}
+                      />
+                      <Text style={[
+                        styles.interestLabel,
+                        contentInterests.includes(interest.id) && styles.interestLabelSelected,
+                      ]}>
+                        {interest.label}
+                      </Text>
+                    </View>
+                  </SelectionCard>
+                ))}
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </Animated.View>
+
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 24 }]}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.nextButton,
+            !canAdvance() && styles.nextButtonDisabled,
+            pressed && canAdvance() && styles.nextButtonPressed,
+          ]}
+          onPress={advance}
+          disabled={!canAdvance()}
+        >
+          <Text style={styles.nextButtonText}>
+            {step === "interests" ? "Get Started" : "Continue"}
+          </Text>
+          <Ionicons
+            name={step === "interests" ? "checkmark" : "arrow-forward"}
+            size={18}
+            color="#fff"
+          />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function countryFlag(country: string): string {
+  const flags: Record<string, string> = {
+    "United States": "🇺🇸",
+    "Brazil": "🇧🇷",
+    "Poland": "🇵🇱",
+    "France": "🇫🇷",
+    "Italy": "🇮🇹",
+    "Japan": "🇯🇵",
+    "Argentina": "🇦🇷",
+    "Canada": "🇨🇦",
+  };
+  return flags[country] ?? "🏳️";
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: C.primary,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backButtonHidden: {
+    opacity: 0,
+  },
+  skipButton: {
+    width: 48,
+    height: 36,
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  skipText: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.4)",
+    fontFamily: "Inter_400Regular",
+  },
+  stepIndicator: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+  },
+  stepDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "rgba(255,255,255,0.2)",
+  },
+  stepDotActive: {
+    width: 20,
+    backgroundColor: C.accent,
+  },
+  stepDotDone: {
+    backgroundColor: "rgba(191,13,62,0.4)",
+  },
+  body: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+  },
+  stepContent: {
+    gap: 6,
+  },
+  stepEmoji: {
+    fontSize: 40,
+    marginBottom: 4,
+  },
+  stepTitle: {
+    fontSize: 28,
+    color: "#fff",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  stepSubtitle: {
+    fontSize: 15,
+    color: "rgba(255,255,255,0.55)",
+    fontFamily: "Inter_400Regular",
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  optionList: {
+    gap: 10,
+  },
+  selectionCard: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.08)",
+    padding: 16,
+    position: "relative",
+  },
+  selectionCardSelected: {
+    backgroundColor: "rgba(191,13,62,0.1)",
+    borderColor: "rgba(191,13,62,0.5)",
+  },
+  selectionCardPressed: {
+    opacity: 0.75,
+  },
+  checkmark: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: C.accent,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
+  },
+  roleCardInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  roleIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  roleIconSelected: {
+    backgroundColor: "rgba(191,13,62,0.25)",
+  },
+  roleText: {
+    flex: 1,
+    gap: 2,
+  },
+  roleLabel: {
+    fontSize: 16,
+    color: "rgba(255,255,255,0.7)",
+    fontFamily: "Inter_600SemiBold",
+  },
+  roleLabelSelected: {
+    color: "#fff",
+  },
+  roleDescription: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.35)",
+    fontFamily: "Inter_400Regular",
+  },
+  levelCardInner: {
+    gap: 2,
+  },
+  levelLabel: {
+    fontSize: 16,
+    color: "rgba(255,255,255,0.7)",
+    fontFamily: "Inter_600SemiBold",
+  },
+  teamGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  teamCardInner: {
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    minWidth: 70,
+  },
+  teamFlag: {
+    fontSize: 30,
+  },
+  teamName: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.6)",
+    fontFamily: "Inter_600SemiBold",
+  },
+  interestGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  interestCardInner: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    minWidth: 90,
+  },
+  interestLabel: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.5)",
+    fontFamily: "Inter_500Medium",
+    textAlign: "center",
+  },
+  interestLabelSelected: {
+    color: "#fff",
+  },
+  footer: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    backgroundColor: "transparent",
+  },
+  nextButton: {
+    backgroundColor: C.accent,
+    borderRadius: 16,
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    shadowColor: C.accent,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  nextButtonDisabled: {
+    backgroundColor: "rgba(191,13,62,0.25)",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  nextButtonPressed: {
+    opacity: 0.85,
+  },
+  nextButtonText: {
+    fontSize: 17,
+    color: "#fff",
+    fontFamily: "Inter_600SemiBold",
+  },
+});

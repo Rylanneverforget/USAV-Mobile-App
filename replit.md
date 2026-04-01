@@ -48,6 +48,18 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 - `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
 - `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
 
+## Onboarding Flow (Mobile)
+
+A multi-step onboarding wizard runs after the user signs in for the first time:
+
+- `app/index.tsx` — root redirect: checks auth + onboarding state and routes to `/login`, `/onboarding`, or `/(tabs)`
+- `app/login.tsx` — branded "Spike" login screen with Replit OIDC sign-in
+- `app/onboarding.tsx` — 4-step wizard: role selection → experience level (players/coaches only) → favorite teams → content interests
+- `context/AppContext.tsx` — stores `UserPreferences` (role, experienceLevel, favoriteTeams, contentInterests) in AsyncStorage; `completeOnboarding()` saves prefs and sets `isOnboarded: true`
+- `app/(tabs)/index.tsx` — home screen personalizes content based on preferences (shows training tips for players/coaches, Olympics section if selected, quick-access interest chips, etc.)
+
+To reset onboarding (for testing): tap the profile avatar on the home screen.
+
 ## Authentication
 
 Replit Auth (OpenID Connect with PKCE) is integrated for the mobile app.
