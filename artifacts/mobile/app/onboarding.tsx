@@ -21,14 +21,22 @@ import {
   NetCourtIcon,
   JerseyIcon,
   OlympicsIcon,
+  MensIcon,
+  WomensIcon,
+  BeachIcon,
+  SittingIcon,
+  CollegeIcon,
+  NewsScrollIcon,
+  PlayerStatsIcon,
 } from "@/components/VolleyballIcons";
 
 const C = Colors.light;
 
-type RoleOption = { id: VolleyballRole; label: string; description: string; SvgIcon?: React.ComponentType<{ size?: number; color?: string }>; icon?: string };
-type LevelOption = { id: ExperienceLevel; label: string; description: string; icon: string };
-type InterestOption = { id: ContentInterest; label: string; SvgIcon?: React.ComponentType<{ size?: number; color?: string }>; icon?: string };
-type DisciplineOption = { id: Discipline; label: string; description: string; icon: string; color: string };
+type SvgIconComponent = React.ComponentType<{ size?: number; color?: string }>;
+type RoleOption = { id: VolleyballRole; label: string; description: string; SvgIcon?: SvgIconComponent; icon?: string };
+type LevelOption = { id: ExperienceLevel; label: string; description: string; SvgIcon: SvgIconComponent };
+type InterestOption = { id: ContentInterest; label: string; SvgIcon: SvgIconComponent };
+type DisciplineOption = { id: Discipline; label: string; description: string; SvgIcon: SvgIconComponent; color: string };
 
 const ROLES: RoleOption[] = [
   { id: "fan", label: "Fan", description: "I love watching volleyball", SvgIcon: VolleyballSvg },
@@ -39,28 +47,28 @@ const ROLES: RoleOption[] = [
 ];
 
 const LEVELS: LevelOption[] = [
-  { id: "recreational", label: "Recreational", description: "Just for fun", icon: "happy-outline" },
-  { id: "club", label: "Club", description: "Competitive club play", icon: "people-outline" },
-  { id: "collegiate", label: "Collegiate", description: "College / university level", icon: "school-outline" },
-  { id: "professional", label: "Professional", description: "Elite or pro level", icon: "star-outline" },
+  { id: "recreational", label: "Recreational", description: "Just for fun",              SvgIcon: VolleyballSvg },
+  { id: "club",         label: "Club",         description: "Competitive club play",     SvgIcon: NetCourtIcon },
+  { id: "collegiate",  label: "Collegiate",   description: "College / university level", SvgIcon: CollegeIcon },
+  { id: "professional",label: "Professional", description: "Elite or pro level",         SvgIcon: SpikeIcon },
 ];
 
 const DISCIPLINES: DisciplineOption[] = [
-  { id: "mens", label: "Men's", description: "VNL · World Championship · LA28", icon: "male", color: "#3A7BF5" },
-  { id: "womens", label: "Women's", description: "VNL · World Championship · LA28", icon: "female", color: "#E04E8A" },
-  { id: "beach", label: "Beach", description: "FIVB Beach Pro Tour · Olympics", icon: "sunny", color: "#F5A623" },
-  { id: "sitting", label: "Sitting", description: "World Para Volleyball · Paralympics", icon: "accessibility", color: "#44C98E" },
-  { id: "ncaa_womens", label: "NCAA Women's", description: "College volleyball · Top programs", icon: "school", color: "#E04E8A" },
-  { id: "ncaa_mens", label: "NCAA Men's", description: "College volleyball · Top programs", icon: "school-outline", color: "#3A7BF5" },
+  { id: "mens",        label: "Men's",        description: "VNL · World Championship · LA28",       SvgIcon: MensIcon,    color: "#3A7BF5" },
+  { id: "womens",      label: "Women's",      description: "VNL · World Championship · LA28",       SvgIcon: WomensIcon,  color: "#E04E8A" },
+  { id: "beach",       label: "Beach",        description: "FIVB Beach Pro Tour · Olympics",         SvgIcon: BeachIcon,   color: "#F5A623" },
+  { id: "sitting",     label: "Sitting",      description: "World Para Volleyball · Paralympics",    SvgIcon: SittingIcon, color: "#44C98E" },
+  { id: "ncaa_womens", label: "NCAA Women's", description: "College volleyball · Top programs",      SvgIcon: CollegeIcon, color: "#E04E8A" },
+  { id: "ncaa_mens",   label: "NCAA Men's",   description: "College volleyball · Top programs",      SvgIcon: CollegeIcon, color: "#3A7BF5" },
 ];
 
 const INTERESTS: InterestOption[] = [
-  { id: "live_scores", label: "Live Scores", SvgIcon: SpikeIcon },
-  { id: "match_results", label: "Match Results", SvgIcon: NetCourtIcon },
-  { id: "player_stats", label: "Player Stats", SvgIcon: JerseyIcon },
-  { id: "team_news", label: "Team News", icon: "newspaper" },
-  { id: "training_tips", label: "Training Tips", SvgIcon: VolleyballSvg },
-  { id: "olympics", label: "Olympics", SvgIcon: OlympicsIcon },
+  { id: "live_scores",    label: "Live Scores",   SvgIcon: SpikeIcon },
+  { id: "match_results",  label: "Match Results", SvgIcon: NetCourtIcon },
+  { id: "player_stats",   label: "Player Stats",  SvgIcon: PlayerStatsIcon },
+  { id: "team_news",      label: "Team News",     SvgIcon: NewsScrollIcon },
+  { id: "training_tips",  label: "Training Tips", SvgIcon: VolleyballSvg },
+  { id: "olympics",       label: "Olympics",      SvgIcon: OlympicsIcon },
 ];
 
 const STEPS = ["role", "discipline", "level", "teams", "interests"] as const;
@@ -230,7 +238,7 @@ export default function OnboardingScreen() {
                     <SelectionCard key={d.id} selected={isSelected} onPress={() => toggleDiscipline(d.id)}>
                       <View style={styles.roleCardInner}>
                         <View style={[styles.disciplineIcon, { backgroundColor: isSelected ? `${d.color}25` : "rgba(255,255,255,0.06)" }]}>
-                          <Ionicons name={d.icon as any} size={22} color={isSelected ? d.color : C.textSecondary} />
+                          <d.SvgIcon size={24} color={isSelected ? d.color : C.textSecondary} />
                         </View>
                         <View style={styles.roleText}>
                           <Text style={[styles.roleLabel, isSelected && styles.roleLabelSelected]}>{d.label}</Text>
@@ -261,7 +269,7 @@ export default function OnboardingScreen() {
                     <SelectionCard key={l.id} selected={isSelected} onPress={() => setExperienceLevel(l.id)}>
                       <View style={styles.roleCardInner}>
                         <View style={[styles.roleIcon, isSelected && styles.roleIconSelected]}>
-                          <Ionicons name={l.icon as any} size={20} color={isSelected ? C.accent : C.textSecondary} />
+                          <l.SvgIcon size={24} color={isSelected ? C.accent : C.textSecondary} />
                         </View>
                         <View style={styles.roleText}>
                           <Text style={[styles.roleLabel, isSelected && styles.roleLabelSelected]}>{l.label}</Text>
@@ -341,7 +349,7 @@ export default function OnboardingScreen() {
                   return (
                     <SelectionCard key={interest.id} selected={isSelected} onPress={() => toggleInterest(interest.id)}>
                       <View style={styles.interestCardInner}>
-                        {interest.SvgIcon ? <interest.SvgIcon size={24} color={iconColor} /> : <Ionicons name={interest.icon as any} size={24} color={iconColor} />}
+                        <interest.SvgIcon size={24} color={iconColor} />
                         <Text style={[styles.interestLabel, isSelected && styles.interestLabelSelected]}>{interest.label}</Text>
                       </View>
                     </SelectionCard>

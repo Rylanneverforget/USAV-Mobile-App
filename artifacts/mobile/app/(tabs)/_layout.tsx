@@ -3,10 +3,16 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
-import { Feather, Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import Colors from "@/constants/colors";
+import {
+  HomeCourtIcon,
+  ScoreboardIcon,
+  PlayerStatsIcon,
+  OlympicsIcon,
+  NewsScrollIcon,
+} from "@/components/VolleyballIcons";
 
 const C = Colors.light;
 
@@ -77,7 +83,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="house" tintColor={color} size={24} />
             ) : (
-              <Feather name="home" size={22} color={color} />
+              <HomeCourtIcon size={24} color={color} />
             ),
         }}
       />
@@ -89,7 +95,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="list.number" tintColor={color} size={24} />
             ) : (
-              <Ionicons name="podium-outline" size={22} color={color} />
+              <ScoreboardIcon size={24} color={color} />
             ),
         }}
       />
@@ -101,7 +107,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="person.2" tintColor={color} size={24} />
             ) : (
-              <Ionicons name="people-outline" size={22} color={color} />
+              <PlayerStatsIcon size={24} color={color} />
             ),
         }}
       />
@@ -113,7 +119,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="medal" tintColor={color} size={24} />
             ) : (
-              <Ionicons name="medal-outline" size={22} color={color} />
+              <OlympicsIcon size={24} color={color} />
             ),
         }}
       />
@@ -125,7 +131,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="newspaper" tintColor={color} size={24} />
             ) : (
-              <Ionicons name="newspaper-outline" size={22} color={color} />
+              <NewsScrollIcon size={24} color={color} />
             ),
         }}
       />

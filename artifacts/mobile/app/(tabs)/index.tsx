@@ -18,6 +18,19 @@ import { useApp } from "@/context/AppContext";
 import { useAuth } from "@/lib/auth";
 import { MATCHES, NEWS, ALL_TEAMS, type Discipline } from "@/constants/data";
 import type { VolleyballRole, ContentInterest } from "@/context/AppContext";
+import {
+  MensIcon,
+  WomensIcon,
+  BeachIcon,
+  SittingIcon,
+  CollegeIcon,
+  SpikeIcon,
+  NetCourtIcon,
+  OlympicsIcon,
+  NewsScrollIcon,
+  VolleyballSvg,
+  JerseyIcon,
+} from "@/components/VolleyballIcons";
 
 const C = Colors.light;
 const WEB_TOP_INSET = 67;
@@ -34,9 +47,15 @@ const ROLE_LABELS: Record<VolleyballRole, string> = {
   fan: "Fan", player: "Player", coach: "Coach", referee: "Referee", media: "Media",
 };
 
-const INTEREST_ICONS: Record<ContentInterest, string> = {
-  live_scores: "flash", match_results: "trophy", player_stats: "bar-chart",
-  team_news: "newspaper", training_tips: "fitness", olympics: "medal",
+type SvgIconComponent = React.ComponentType<{ size?: number; color?: string }>;
+
+const INTEREST_SVG_ICONS: Record<ContentInterest, SvgIconComponent> = {
+  live_scores: SpikeIcon,
+  match_results: NetCourtIcon,
+  player_stats: JerseyIcon,
+  team_news: NewsScrollIcon,
+  training_tips: VolleyballSvg,
+  olympics: OlympicsIcon,
 };
 
 const INTEREST_LABELS: Record<ContentInterest, string> = {
@@ -44,13 +63,13 @@ const INTEREST_LABELS: Record<ContentInterest, string> = {
   team_news: "News", training_tips: "Training", olympics: "Olympics",
 };
 
-const DISCIPLINE_CONFIG: Record<Discipline, { label: string; icon: string; color: string; bg: string; tournament: string }> = {
-  mens:       { label: "Men's",        icon: "male",           color: "#3A7BF5", bg: "rgba(58,123,245,0.12)",  tournament: "VNL 2026" },
-  womens:     { label: "Women's",      icon: "female",         color: "#E04E8A", bg: "rgba(224,78,138,0.12)", tournament: "VNL 2026" },
-  beach:      { label: "Beach",        icon: "sunny",          color: "#F5A623", bg: "rgba(245,166,35,0.12)",  tournament: "Beach Pro Tour" },
-  sitting:    { label: "Sitting",      icon: "accessibility",  color: "#44C98E", bg: "rgba(68,201,142,0.12)", tournament: "World Para VB" },
-  ncaa_womens:{ label: "NCAA Women's", icon: "school",         color: "#E04E8A", bg: "rgba(224,78,138,0.12)", tournament: "NCAA 2025-26" },
-  ncaa_mens:  { label: "NCAA Men's",   icon: "school-outline", color: "#3A7BF5", bg: "rgba(58,123,245,0.12)",  tournament: "NCAA 2025-26" },
+const DISCIPLINE_CONFIG: Record<Discipline, { label: string; SvgIcon: SvgIconComponent; color: string; bg: string; tournament: string }> = {
+  mens:        { label: "Men's",        SvgIcon: MensIcon,    color: "#3A7BF5", bg: "rgba(58,123,245,0.12)",   tournament: "VNL 2026" },
+  womens:      { label: "Women's",      SvgIcon: WomensIcon,  color: "#E04E8A", bg: "rgba(224,78,138,0.12)",   tournament: "VNL 2026" },
+  beach:       { label: "Beach",        SvgIcon: BeachIcon,   color: "#F5A623", bg: "rgba(245,166,35,0.12)",   tournament: "Beach Pro Tour" },
+  sitting:     { label: "Sitting",      SvgIcon: SittingIcon, color: "#44C98E", bg: "rgba(68,201,142,0.12)",   tournament: "World Para VB" },
+  ncaa_womens: { label: "NCAA Women's", SvgIcon: CollegeIcon, color: "#E04E8A", bg: "rgba(224,78,138,0.12)",   tournament: "NCAA 2025-26" },
+  ncaa_mens:   { label: "NCAA Men's",   SvgIcon: CollegeIcon, color: "#3A7BF5", bg: "rgba(58,123,245,0.12)",   tournament: "NCAA 2025-26" },
 };
 
 const ALL_DISCIPLINES: Discipline[] = ["mens", "womens", "beach", "sitting", "ncaa_womens", "ncaa_mens"];
@@ -151,12 +170,13 @@ function ProfileMenu({
 type DisciplinePillProps = { disc: Discipline; active: boolean; onPress: () => void };
 function DisciplinePill({ disc, active, onPress }: DisciplinePillProps) {
   const cfg = DISCIPLINE_CONFIG[disc];
+  const IconComp = cfg.SvgIcon;
   return (
     <Pressable
       onPress={onPress}
       style={[styles.discPill, active && { backgroundColor: cfg.color, borderColor: cfg.color }]}
     >
-      <Ionicons name={cfg.icon as any} size={12} color={active ? "#fff" : C.textSecondary} />
+      <IconComp size={14} color={active ? "#fff" : C.textSecondary} />
       <Text style={[styles.discPillText, active && { color: "#fff" }]}>{cfg.label}</Text>
     </Pressable>
   );
@@ -180,7 +200,7 @@ function DisciplineSection({ disc, favoriteTeamIds }: DisciplineSectionProps) {
       <View style={[styles.disciplineSectionHeader, { backgroundColor: cfg.bg, borderColor: `${cfg.color}30` }]}>
         <View style={styles.disciplineSectionLeft}>
           <View style={[styles.disciplineSectionIcon, { backgroundColor: cfg.color }]}>
-            <Ionicons name={cfg.icon as any} size={13} color="#fff" />
+            <cfg.SvgIcon size={15} color="#fff" />
           </View>
           <View>
             <Text style={[styles.disciplineSectionLabel, { color: cfg.color }]}>{cfg.label}</Text>
@@ -283,12 +303,15 @@ export default function HomeScreen() {
 
       {preferences.contentInterests.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.interestBar} contentContainerStyle={styles.interestBarContent}>
-          {preferences.contentInterests.map((interest) => (
-            <View key={interest} style={styles.interestChip}>
-              <Ionicons name={INTEREST_ICONS[interest] as any} size={12} color={C.accent} />
-              <Text style={styles.interestChipText}>{INTEREST_LABELS[interest]}</Text>
-            </View>
-          ))}
+          {preferences.contentInterests.map((interest) => {
+            const InterestIcon = INTEREST_SVG_ICONS[interest];
+            return (
+              <View key={interest} style={styles.interestChip}>
+                <InterestIcon size={14} color={C.accent} />
+                <Text style={styles.interestChipText}>{INTEREST_LABELS[interest]}</Text>
+              </View>
+            );
+          })}
         </ScrollView>
       )}
 
@@ -309,7 +332,7 @@ export default function HomeScreen() {
       {showTrainingTips && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="fitness" size={14} color={C.accent} />
+            <VolleyballSvg size={16} color={C.accent} />
             <Text style={styles.sectionTitle}>Training Tips</Text>
           </View>
           {TRAINING_TIPS.map((tip) => (
@@ -335,7 +358,7 @@ export default function HomeScreen() {
       {showOlympics && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="medal" size={14} color="#F5A623" />
+            <OlympicsIcon size={16} color="#F5A623" />
             <Text style={styles.sectionTitle}>LA28 Olympics</Text>
           </View>
           <View style={styles.olympicsCard}>
@@ -365,7 +388,7 @@ export default function HomeScreen() {
         (preferences.contentInterests.length === 0 || preferences.contentInterests.includes("team_news")) && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="newspaper-outline" size={14} color={C.accent} />
+              <NewsScrollIcon size={16} color={C.accent} />
               <Text style={styles.sectionTitle}>Latest News</Text>
             </View>
             <NewsCard item={allNews[0]} featured />
