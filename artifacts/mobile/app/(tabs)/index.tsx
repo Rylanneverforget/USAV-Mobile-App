@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import {
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -69,6 +70,81 @@ function ProfileBadge({ onPress }: { onPress: () => void }) {
         </View>
       )}
     </Pressable>
+  );
+}
+
+function ProfileMenu({
+  visible,
+  onClose,
+  onUpdatePreferences,
+  onSignOut,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onUpdatePreferences: () => void;
+  onSignOut: () => void;
+}) {
+  const { user } = useAuth();
+  const { preferences } = useApp();
+  const insets = useSafeAreaInsets();
+  const initials = user?.firstName ? user.firstName[0] + (user.lastName?.[0] ?? "") : "?";
+  const displayName = user?.firstName ? `${user.firstName} ${user.lastName ?? ""}`.trim() : "Guest";
+  const disciplineCount = preferences.disciplines.length;
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.menuOverlay} onPress={onClose}>
+        <Pressable
+          style={[styles.menuSheet, { paddingBottom: insets.bottom + 16 }]}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <View style={styles.menuHandle} />
+
+          <View style={styles.menuProfile}>
+            <View style={styles.menuAvatar}>
+              <Text style={styles.menuAvatarText}>{initials}</Text>
+            </View>
+            <View style={styles.menuProfileInfo}>
+              <Text style={styles.menuDisplayName}>{displayName}</Text>
+              {preferences.role && (
+                <Text style={styles.menuRole}>{ROLE_LABELS[preferences.role]} · {disciplineCount} discipline{disciplineCount !== 1 ? "s" : ""}</Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.menuDivider} />
+
+          <Pressable
+            style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
+            onPress={() => { onClose(); onUpdatePreferences(); }}
+          >
+            <View style={styles.menuItemIcon}>
+              <Ionicons name="options-outline" size={18} color={C.accent} />
+            </View>
+            <View style={styles.menuItemText}>
+              <Text style={styles.menuItemLabel}>Update Preferences</Text>
+              <Text style={styles.menuItemSub}>Change disciplines, teams & interests</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={C.textMuted} />
+          </Pressable>
+
+          <View style={styles.menuDivider} />
+
+          <Pressable
+            style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
+            onPress={() => { onClose(); onSignOut(); }}
+          >
+            <View style={[styles.menuItemIcon, styles.menuItemIconDanger]}>
+              <Ionicons name="log-out-outline" size={18} color="#E84855" />
+            </View>
+            <View style={styles.menuItemText}>
+              <Text style={[styles.menuItemLabel, styles.menuItemLabelDanger]}>Sign Out</Text>
+              <Text style={styles.menuItemSub}>Log out of your Spike account</Text>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -150,6 +226,8 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
 
+  const [menuVisible, setMenuVisible] = useState(false);
+
   const activeDisciplines = preferences.disciplines.length > 0 ? preferences.disciplines : ALL_DISCIPLINES;
   const [activeFilter, setActiveFilter] = useState<Discipline | "all">("all");
 
@@ -167,7 +245,18 @@ export default function HomeScreen() {
 
   const allNews = NEWS.filter((n) => !n.discipline || activeDisciplines.includes(n.discipline));
 
+  const handleSignOut = async () => {
+    await logout();
+  };
+
   return (
+    <>
+    <ProfileMenu
+      visible={menuVisible}
+      onClose={() => setMenuVisible(false)}
+      onUpdatePreferences={resetOnboarding}
+      onSignOut={handleSignOut}
+    />
     <ScrollView
       style={styles.container}
       contentContainerStyle={[styles.content, { paddingTop: topPad, paddingBottom: isWeb ? 34 : insets.bottom + 90 }]}
@@ -188,7 +277,7 @@ export default function HomeScreen() {
               <Text style={styles.liveBadgeText}>{liveCount} LIVE</Text>
             </View>
           )}
-          <ProfileBadge onPress={resetOnboarding} />
+          <ProfileBadge onPress={() => setMenuVisible(true)} />
         </View>
       </View>
 
@@ -284,6 +373,7 @@ export default function HomeScreen() {
           </View>
         )}
     </ScrollView>
+    </>
   );
 }
 
@@ -344,4 +434,22 @@ const styles = StyleSheet.create({
   olympicsTagRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   olympicsTag: { backgroundColor: "rgba(245,166,35,0.15)", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   olympicsTagText: { fontSize: 11, color: "#F5A623", fontFamily: "Inter_600SemiBold" },
+  menuOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
+  menuSheet: { backgroundColor: "#0D1B3E", borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 12, paddingHorizontal: 20, borderTopWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  menuHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.15)", alignSelf: "center", marginBottom: 20 },
+  menuProfile: { flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 20 },
+  menuAvatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: "rgba(191,13,62,0.2)", borderWidth: 2, borderColor: "rgba(191,13,62,0.4)", alignItems: "center", justifyContent: "center" },
+  menuAvatarText: { fontSize: 18, color: C.accent, fontFamily: "Inter_700Bold" },
+  menuProfileInfo: { flex: 1, gap: 3 },
+  menuDisplayName: { fontSize: 17, color: C.text, fontFamily: "Inter_700Bold" },
+  menuRole: { fontSize: 13, color: C.textSecondary, fontFamily: "Inter_400Regular" },
+  menuDivider: { height: 1, backgroundColor: "rgba(255,255,255,0.07)", marginVertical: 4 },
+  menuItem: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 16, borderRadius: 12 },
+  menuItemPressed: { opacity: 0.65 },
+  menuItemIcon: { width: 38, height: 38, borderRadius: 10, backgroundColor: "rgba(191,13,62,0.12)", alignItems: "center", justifyContent: "center" },
+  menuItemIconDanger: { backgroundColor: "rgba(232,72,85,0.12)" },
+  menuItemText: { flex: 1, gap: 2 },
+  menuItemLabel: { fontSize: 15, color: C.text, fontFamily: "Inter_600SemiBold" },
+  menuItemLabelDanger: { color: "#E84855" },
+  menuItemSub: { fontSize: 12, color: C.textMuted, fontFamily: "Inter_400Regular" },
 });
