@@ -2,6 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   StyleSheet,
   Text,
@@ -16,49 +17,40 @@ import {
   NetCourtIcon,
   JerseyIcon,
   OlympicsIcon,
+  NewsScrollIcon,
   VolleyballBgDecor,
 } from "@/components/VolleyballIcons";
 
 const C = Colors.light;
 
 const BG_DECORS = [
-  { top: "5%", left: "-4%", size: 110 },
+  { top: "5%",  left: "-4%",  size: 110 },
   { top: "18%", right: "-8%", size: 90 },
-  { top: "42%", left: "-6%", size: 70 },
+  { top: "42%", left: "-6%",  size: 70 },
   { top: "60%", right: "-2%", size: 80 },
-  { top: "78%", left: "8%", size: 60 },
+  { top: "78%", left: "8%",   size: 60 },
 ];
 
 const FEATURES = [
-  {
-    Icon: SpikeIcon,
-    label: "Spike",
-    text: "Live match scores & play-by-play",
-    accent: C.accent,
-  },
-  {
-    Icon: NetCourtIcon,
-    label: "Court",
-    text: "VNL 2026 standings & results",
-    accent: C.accent,
-  },
-  {
-    Icon: JerseyIcon,
-    label: "Jersey",
-    text: "Player stats & team rosters",
-    accent: C.accent,
-  },
-  {
-    Icon: OlympicsIcon,
-    label: "Olympics",
-    text: "LA28 Olympics coverage",
-    accent: C.accent,
-  },
+  { Icon: SpikeIcon,    label: "Live",      text: "Live match scores & play-by-play" },
+  { Icon: NetCourtIcon, label: "Standings", text: "VNL 2026 standings & results" },
+  { Icon: JerseyIcon,   label: "Players",   text: "Player stats & team rosters" },
+  { Icon: OlympicsIcon, label: "Olympics",  text: "LA28 Olympics coverage" },
+  { Icon: NewsScrollIcon, label: "News",    text: "Breaking volleyball news" },
 ];
 
+const STATUS_LABEL: Record<string, string> = {
+  idle:       "Sign in to continue",
+  opening:    "Opening sign-in…",
+  exchanging: "Completing sign-in…",
+  error:      "Sign in to continue",
+};
+
 export default function LoginScreen() {
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isSigningIn, loginStatus, loginError, clearLoginError } = useAuth();
   const insets = useSafeAreaInsets();
+
+  const busy = isLoading || isSigningIn;
 
   return (
     <View style={styles.container}>
@@ -80,11 +72,7 @@ export default function LoginScreen() {
           key={i}
           style={[
             styles.bgDecor,
-            {
-              top: d.top as any,
-              left: (d as any).left,
-              right: (d as any).right,
-            },
+            { top: d.top as any, left: (d as any).left, right: (d as any).right },
           ]}
         >
           <VolleyballBgDecor size={d.size} opacity={0.07} />
@@ -94,9 +82,10 @@ export default function LoginScreen() {
       <View
         style={[
           styles.content,
-          { paddingTop: insets.top + 52, paddingBottom: insets.bottom + 36 },
+          { paddingTop: insets.top + 48, paddingBottom: insets.bottom + 32 },
         ]}
       >
+        {/* Logo */}
         <View style={styles.logoSection}>
           <View style={styles.logoRing}>
             <View style={styles.logoInner}>
@@ -107,32 +96,63 @@ export default function LoginScreen() {
           <Text style={styles.appTagline}>Your volleyball universe</Text>
         </View>
 
+        {/* Feature list */}
         <View style={styles.featureGrid}>
-          {FEATURES.map(({ Icon, label, text, accent }) => (
+          {FEATURES.map(({ Icon, label, text }) => (
             <View key={label} style={styles.featureTile}>
               <View style={styles.featureTileIcon}>
-                <Icon size={28} color={accent} opacity={1} />
+                <Icon size={26} color={C.accent} opacity={1} />
               </View>
               <Text style={styles.featureTileText}>{text}</Text>
             </View>
           ))}
         </View>
 
+        {/* Auth section */}
         <View style={styles.authSection}>
+          {/* Error banner */}
+          {loginError && (
+            <View style={styles.errorBanner}>
+              <View style={styles.errorBannerLeft}>
+                <Text style={styles.errorIcon}>⚠</Text>
+                <Text style={styles.errorText}>{loginError}</Text>
+              </View>
+              <Pressable onPress={clearLoginError} hitSlop={10}>
+                <Text style={styles.errorDismiss}>✕</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {/* Status row — shown while in-progress */}
+          {isSigningIn && (
+            <View style={styles.statusRow}>
+              <ActivityIndicator size="small" color={C.accent} />
+              <Text style={styles.statusText}>{STATUS_LABEL[loginStatus]}</Text>
+            </View>
+          )}
+
+          {/* Sign-in button */}
           <Pressable
             style={({ pressed }) => [
               styles.loginButton,
-              pressed && styles.loginButtonPressed,
+              loginStatus === "error" && styles.loginButtonRetry,
+              busy && styles.loginButtonBusy,
+              pressed && !busy && styles.loginButtonPressed,
             ]}
-            onPress={login}
+            onPress={() => {
+              if (loginError) clearLoginError();
+              login();
+            }}
             disabled={isLoading}
           >
-            {isLoading ? (
+            {busy ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
               <>
                 <VolleyballSvg size={22} color="#fff" />
-                <Text style={styles.loginButtonText}>Sign in to continue</Text>
+                <Text style={styles.loginButtonText}>
+                  {loginStatus === "error" ? "Try Again" : "Sign in to continue"}
+                </Text>
               </>
             )}
           </Pressable>
@@ -142,6 +162,7 @@ export default function LoginScreen() {
           </Text>
         </View>
 
+        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Powered by{" "}
@@ -170,6 +191,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     justifyContent: "space-between",
   },
+
+  /* Logo */
   logoSection: {
     alignItems: "center",
     gap: 10,
@@ -204,40 +227,90 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     letterSpacing: 0.3,
   },
+
+  /* Feature tiles */
   featureGrid: {
-    gap: 10,
+    gap: 8,
   },
   featureTile: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: 14,
     backgroundColor: "rgba(255,255,255,0.04)",
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: "rgba(191,13,62,0.18)",
+    borderColor: "rgba(191,13,62,0.16)",
   },
   featureTileIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 11,
     backgroundColor: "rgba(191,13,62,0.1)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(191,13,62,0.25)",
+    borderColor: "rgba(191,13,62,0.22)",
     flexShrink: 0,
   },
   featureTileText: {
     flex: 1,
     fontSize: 14,
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(255,255,255,0.75)",
     fontFamily: "Inter_400Regular",
     lineHeight: 20,
   },
+
+  /* Auth */
   authSection: {
-    gap: 14,
+    gap: 12,
+  },
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(232,72,85,0.12)",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(232,72,85,0.35)",
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    gap: 10,
+  },
+  errorBannerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  errorIcon: {
+    fontSize: 14,
+    color: "#E84855",
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#E84855",
+    fontFamily: "Inter_400Regular",
+    lineHeight: 18,
+  },
+  errorDismiss: {
+    fontSize: 12,
+    color: "rgba(232,72,85,0.6)",
+    paddingHorizontal: 2,
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 4,
+  },
+  statusText: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.55)",
+    fontFamily: "Inter_400Regular",
   },
   loginButton: {
     backgroundColor: C.accent,
@@ -252,6 +325,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.45,
     shadowRadius: 18,
     elevation: 8,
+  },
+  loginButtonRetry: {
+    backgroundColor: "#c41040",
+  },
+  loginButtonBusy: {
+    opacity: 0.7,
+    shadowOpacity: 0.15,
   },
   loginButtonPressed: {
     opacity: 0.85,
@@ -269,6 +349,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 18,
   },
+
+  /* Footer */
   footer: {
     alignItems: "center",
   },
