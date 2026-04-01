@@ -6,7 +6,17 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { MATCHES, NEWS, PLAYERS, TEAMS, type Match, type NewsItem, type Player, type Team } from "@/constants/data";
+import {
+  ALL_TEAMS,
+  MATCHES,
+  NEWS,
+  PLAYERS,
+  type Match,
+  type NewsItem,
+  type Player,
+  type Team,
+  type Discipline,
+} from "@/constants/data";
 
 export type VolleyballRole = "fan" | "player" | "coach" | "referee" | "media";
 export type ExperienceLevel = "recreational" | "club" | "collegiate" | "professional";
@@ -17,10 +27,12 @@ export type UserPreferences = {
   experienceLevel: ExperienceLevel | null;
   favoriteTeams: string[];
   contentInterests: ContentInterest[];
+  disciplines: Discipline[];
 };
 
 type AppContextType = {
   teams: Team[];
+  allTeams: Team[];
   matches: Match[];
   players: Player[];
   news: NewsItem[];
@@ -41,12 +53,13 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   experienceLevel: null,
   favoriteTeams: [],
   contentInterests: [],
+  disciplines: ["mens"],
 };
 
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [favorites, setFavorites] = useState<string[]>(["1"]);
+  const [favorites, setFavorites] = useState<string[]>(["m1"]);
   const [activeTab, setActiveTab] = useState("home");
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [isOnboarded, setIsOnboarded] = useState(false);
@@ -107,13 +120,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.removeItem("user_preferences");
   }, []);
 
+  const filteredMatches = preferences.disciplines.length > 0
+    ? MATCHES.filter((m) => preferences.disciplines.includes(m.discipline))
+    : MATCHES;
+
+  const filteredPlayers = preferences.disciplines.length > 0
+    ? PLAYERS.filter((p) => preferences.disciplines.includes(p.discipline))
+    : PLAYERS;
+
+  const filteredNews = preferences.disciplines.length > 0
+    ? NEWS.filter((n) => !n.discipline || preferences.disciplines.includes(n.discipline))
+    : NEWS;
+
   return (
     <AppContext.Provider
       value={{
-        teams: TEAMS,
-        matches: MATCHES,
-        players: PLAYERS,
-        news: NEWS,
+        teams: ALL_TEAMS.filter((t) =>
+          preferences.disciplines.length > 0
+            ? preferences.disciplines.includes(t.discipline)
+            : true
+        ),
+        allTeams: ALL_TEAMS,
+        matches: filteredMatches,
+        players: filteredPlayers,
+        news: filteredNews,
         favorites,
         toggleFavorite,
         isFavorite,
