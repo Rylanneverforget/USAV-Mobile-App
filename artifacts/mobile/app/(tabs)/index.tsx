@@ -80,12 +80,13 @@ const DISCIPLINE_CONFIG: Record<Discipline, {
 const ALL_DISCIPLINES: Discipline[] = ["mens", "womens", "beach", "sitting", "ncaa_womens", "ncaa_mens"];
 
 /* ── Persona detection ── */
-type HomePersona = "fan" | "junior" | "parent";
+type HomePersona = "fan" | "junior" | "parent" | "coach";
 
 function getPersona(juniorClub: JuniorClubPrefs | null): HomePersona {
   if (!juniorClub) return "fan";
   if (juniorClub.role === "parent") return "parent";
   if (juniorClub.role === "junior_player") return "junior";
+  if (juniorClub.role === "club_coach") return "coach";
   return "fan";
 }
 
@@ -93,6 +94,7 @@ const PERSONA_TAB_LABELS: Record<HomePersona, { club: string; national: string; 
   fan:    { club: "My Club",    national: "National Teams", accent: "#BF0D3E" },
   junior: { club: "My Club",    national: "National Teams", accent: "#9B59B6" },
   parent: { club: "Club Hub",   national: "National Teams", accent: "#2DC579" },
+  coach:  { club: "My Teams",   national: "National Teams", accent: "#F5A623" },
 };
 
 /* ── Persona tab bar ── */
@@ -493,7 +495,7 @@ export default function HomeScreen() {
         )}
 
         {/* ── Club Hub content (junior player) ── */}
-        {persona === "junior" && homeTab === "myspace" && preferences.juniorClub && (
+        {(persona === "junior" || persona === "coach") && homeTab === "myspace" && preferences.juniorClub && (
           <View style={styles.section}>
             <JuniorClubSection juniorClub={preferences.juniorClub} />
           </View>
