@@ -15,11 +15,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MatchCard from "@/components/MatchCard";
 import NewsCard from "@/components/NewsCard";
 import JuniorClubSection from "@/components/JuniorClubSection";
+import ParentHubSection from "@/components/ParentHubSection";
 import Colors from "@/constants/colors";
 import { useApp } from "@/context/AppContext";
 import { useAuth } from "@/lib/auth";
 import { MATCHES, NEWS, ALL_TEAMS, type Discipline } from "@/constants/data";
-import type { VolleyballRole, ContentInterest } from "@/context/AppContext";
+import type { VolleyballRole, ContentInterest, JuniorClubPrefs } from "@/context/AppContext";
 import {
   MensIcon,
   WomensIcon,
@@ -77,6 +78,53 @@ const DISCIPLINE_CONFIG: Record<Discipline, {
 };
 
 const ALL_DISCIPLINES: Discipline[] = ["mens", "womens", "beach", "sitting", "ncaa_womens", "ncaa_mens"];
+
+/* ── Persona detection ── */
+type HomePersona = "fan" | "junior" | "parent";
+
+function getPersona(juniorClub: JuniorClubPrefs | null): HomePersona {
+  if (!juniorClub) return "fan";
+  if (juniorClub.role === "parent") return "parent";
+  if (juniorClub.role === "junior_player") return "junior";
+  return "fan";
+}
+
+const PERSONA_TAB_LABELS: Record<HomePersona, { club: string; national: string; accent: string }> = {
+  fan:    { club: "My Club",    national: "National Teams", accent: "#BF0D3E" },
+  junior: { club: "My Club",    national: "National Teams", accent: "#9B59B6" },
+  parent: { club: "Club Hub",   national: "National Teams", accent: "#2DC579" },
+};
+
+/* ── Persona tab bar ── */
+function PersonaTabBar({
+  persona, activeTab, onTabChange,
+}: {
+  persona: HomePersona;
+  activeTab: "myspace" | "national";
+  onTabChange: (t: "myspace" | "national") => void;
+}) {
+  const labels = PERSONA_TAB_LABELS[persona];
+  return (
+    <View style={styles.personaTabBar}>
+      <Pressable
+        style={[styles.personaTab, activeTab === "myspace" && { backgroundColor: labels.accent, borderColor: labels.accent }]}
+        onPress={() => onTabChange("myspace")}
+      >
+        <Text style={[styles.personaTabText, activeTab === "myspace" && styles.personaTabTextActive]}>
+          {labels.club}
+        </Text>
+      </Pressable>
+      <Pressable
+        style={[styles.personaTab, activeTab === "national" && { backgroundColor: C.accent, borderColor: C.accent }]}
+        onPress={() => onTabChange("national")}
+      >
+        <Text style={[styles.personaTabText, activeTab === "national" && styles.personaTabTextActive]}>
+          {labels.national}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
 
 const TRAINING_TIPS = [
   { id: "1", icon: "repeat", title: "Serve Consistency", body: "Focus on tossing the ball to the same spot every time. Consistency in your toss leads to consistent serves." },
@@ -373,6 +421,12 @@ export default function HomeScreen() {
 
   const [menuVisible, setMenuVisible] = useState(false);
 
+  // Persona-adaptive tab system
+  const persona = getPersona(preferences.juniorClub ?? null);
+  const [homeTab, setHomeTab] = useState<"myspace" | "national">(
+    persona !== "fan" ? "myspace" : "national"
+  );
+
   const activeDisciplines = preferences.disciplines.length > 0 ? preferences.disciplines : ALL_DISCIPLINES;
   const [activeFilter, setActiveFilter] = useState<Discipline | "all">("all");
 
@@ -429,6 +483,32 @@ export default function HomeScreen() {
           <Text style={styles.usavBarText}>Powered by USA Volleyball</Text>
         </View>
 
+        {/* ── Persona tab bar (junior / parent only) ── */}
+        {persona !== "fan" && (
+          <PersonaTabBar
+            persona={persona}
+            activeTab={homeTab}
+            onTabChange={setHomeTab}
+          />
+        )}
+
+        {/* ── Club Hub content (junior player) ── */}
+        {persona === "junior" && homeTab === "myspace" && preferences.juniorClub && (
+          <View style={styles.section}>
+            <JuniorClubSection juniorClub={preferences.juniorClub} />
+          </View>
+        )}
+
+        {/* ── Parent Club Hub content ── */}
+        {persona === "parent" && homeTab === "myspace" && preferences.juniorClub && (
+          <View style={styles.section}>
+            <ParentHubSection juniorClub={preferences.juniorClub} />
+          </View>
+        )}
+
+        {/* ── National Teams content (fan always; junior/parent when on national tab) ── */}
+        {(persona === "fan" || homeTab === "national") && (
+          <>
         {/* Quick stats strip */}
         <View style={styles.statsStrip}>
           <View style={styles.statStripItem}>
@@ -454,20 +534,6 @@ export default function HomeScreen() {
 
         {/* Spotlight hero card */}
         <SpotlightCard disciplines={activeDisciplines} />
-
-        {/* Junior Club Hub */}
-        {preferences.juniorClub && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <NetCourtIcon size={16} color={C.accent} />
-              <Text style={styles.sectionTitle}>My Club Hub</Text>
-              <View style={styles.juniorBadge}>
-                <Text style={styles.juniorBadgeText}>Junior Club</Text>
-              </View>
-            </View>
-            <JuniorClubSection juniorClub={preferences.juniorClub} />
-          </View>
-        )}
 
         {/* Interest chips */}
         {preferences.contentInterests.length > 0 && (
@@ -584,6 +650,8 @@ export default function HomeScreen() {
             {allNews.slice(1, 4).map((n) => <NewsCard key={n.id} item={n} />)}
           </View>
         )}
+          </>
+        )}
       </ScrollView>
     </>
   );
@@ -659,6 +727,29 @@ const styles = StyleSheet.create({
 
   juniorBadge: { backgroundColor: "rgba(58,123,245,0.12)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: "rgba(58,123,245,0.25)", marginLeft: 6 },
   juniorBadgeText: { fontSize: 11, color: "#3A7BF5", fontFamily: "Inter_600SemiBold" },
+
+  /* Persona tab bar */
+  personaTabBar: {
+    flexDirection: "row",
+    backgroundColor: C.cardBg,
+    borderRadius: 14,
+    padding: 3,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: C.separator,
+    gap: 3,
+  },
+  personaTab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  personaTabText: { fontSize: 13, color: C.textMuted, fontFamily: "Inter_700Bold" },
+  personaTabTextActive: { color: "#fff" },
 
   interestBar: { marginBottom: 12, marginHorizontal: -16 },
   interestBarContent: { paddingHorizontal: 16, gap: 8, flexDirection: "row" },
