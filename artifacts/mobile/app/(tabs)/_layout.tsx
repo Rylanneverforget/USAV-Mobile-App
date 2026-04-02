@@ -10,7 +10,7 @@ import {
   HomeCourtIcon,
   ScoreboardIcon,
   PlayerStatsIcon,
-  OlympicsIcon,
+  NetCourtIcon,
   NewsScrollIcon,
 } from "@/components/VolleyballIcons";
 import { useApp } from "@/context/AppContext";
@@ -33,9 +33,9 @@ function NativeTabLayout() {
         <Icon sf={{ default: "person.2", selected: "person.2.fill" }} />
         <Label>Players</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="olympics">
-        <Icon sf={{ default: "medal", selected: "medal.fill" }} />
-        <Label>LA28</Label>
+      <NativeTabs.Trigger name="matches">
+        <Icon sf={{ default: "sportscourt", selected: "sportscourt.fill" }} />
+        <Label>Matches</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="news">
         <Icon sf={{ default: "newspaper", selected: "newspaper.fill" }} />
@@ -114,16 +114,20 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="olympics"
+        name="matches"
         options={{
-          title: "LA28",
+          title: "Matches",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="medal" tintColor={color} size={24} />
+              <SymbolView name="sportscourt" tintColor={color} size={24} />
             ) : (
-              <OlympicsIcon size={24} color={color} />
+              <NetCourtIcon size={24} color={color} />
             ),
         }}
+      />
+      <Tabs.Screen
+        name="olympics"
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="news"
